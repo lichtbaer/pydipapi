@@ -84,7 +84,8 @@ fabric.properties
 pyvenv.cfg
 .venv
 pip-selfcheck.json
-
+Notebook
+Notebook/*
 ### Eclipse template
 .metadata
 bin/
