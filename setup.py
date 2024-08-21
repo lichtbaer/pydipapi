@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.0.1'
+VERSION = '0.0.2'
 DESCRIPTION = 'pydipapi Package - A simple wrapper around the API of the German Bundestag.'
 
 with open("README.md", "r", encoding="utf-8") as fh:
@@ -16,8 +16,8 @@ setup(
     long_description=description,
     long_description_content_type="text/markdown",
     packages=find_packages(),
-    url="https://github.com/gituser/test-tackage",
-    install_requires=["requests"],  # add any additional packages that
+    url="https://github.com/lichtbaer/pydipapi",
+    install_requires=["requests", "pydantic"],  # add any additional packages that
     # needs to be installed along with your package. Eg: 'caer'
 
     keywords=['Bundestag'],
