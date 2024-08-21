@@ -18,8 +18,9 @@ setup(
     packages=find_packages(),
     url="https://github.com/lichtbaer/pydipapi",
     install_requires=["requests", "pydantic"],  # add any additional packages that
-    # needs to be installed along with your package. Eg: 'caer'
-
+    extras_require={
+        "pandas": ["pandas"]  # Optional dependencies
+    },
     keywords=['Bundestag'],
     classifiers=[
         "Development Status :: 3 - Alpha",

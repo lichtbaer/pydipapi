@@ -1,37 +1,64 @@
+# pydipapi
 
-# pydipapi 
+pydipapi is a Python package that provides a simple and convenient wrapper around the API of the German Bundestag. This package allows developers to easily access various endpoints of the Bundestag's API to retrieve information about legislative processes, documents, and more.
 
-pydipapi Package - A simple wrapper around the API of the German Bundestag.
+> **Note:** The author is not affiliated with the German Bundestag or any of its institutions.
 
-The author is in no way affiliated with the German Bundestag or any of its institutions.
+## Features
 
-A key is required to use the API. This can be obtained from the German Bundestag. 
-To the original documentation of the API: [dip.bundestag.de](https://dip.bundestag.de/%C3%BCber-dip/hilfe/api#content)
+- Retrieve information about persons, activities, documents, and plenary protocols.
+- Access detailed data on legislative processes and their positions.
+- Designed to be easy to use and integrate into your projects.
 
-[![GPLv3 License](https://img.shields.io/badge/License-GPL%20v3-yellow.svg)](https://opensource.org/licenses/)
+## Requirements
 
+- An API key is required to use the Bundestag API. You can obtain this key from the German Bundestag.
+- Python 3.7 or later.
 
+## Documentation
 
-  
+For more information on the API and how to obtain an API key, please refer to the official documentation.
+
+## License
+
+This project is licensed under the GPLv3 License.
+
 ## Installation
 
-A virtual environment is recommended. Then install with pip.
+It is recommended to use a virtual environment. You can install the package using pip:
 
-```bash
-  pip install pydipapi
+```sh
+pip install pydipapi
 ```
+## Usage
+
+Here's a quick example of how to use the package:
+### Initialize the API
+
+```python
+from pydipapi import DipAnfrage
+
+# Initialize with your API key
+dip = DipAnfrage(apikey='your_api_key_here')
+```
+### Example: Retrieve Persons
     
-## Usage/Examples
-Initiate the API
 ```python
-import DipAnfrage from pydipapi
-
-dip = DipAnfrage()
+# Retrieve a list of persons
+persons = dip.get_person(anzahl=10)
+print(persons)
 ```
 
+### Example:  Retrieve a Single Person by ID
 
 ```python
-
-dip = DipAnfrage()
+# Retrieve a single person by ID
+person = dip.get_person_id(id=12345)
+print(person)
 ```
-  
+
+## Contributing
+Contributions are welcome! Please feel free to submit a pull request or open an issue if you have suggestions for improvements or find any bugs.  
+
+## Contact
+For any inquiries, please contact the package author via GitHub.
