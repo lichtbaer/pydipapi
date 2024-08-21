@@ -2,6 +2,8 @@
 
 pydipapi is a Python package that provides a simple and convenient wrapper around the API of the German Bundestag. This package allows developers to easily access various endpoints of the Bundestag's API to retrieve information about legislative processes, documents, and more.
 
+
+
 > **Note:** The author is not affiliated with the German Bundestag or any of its institutions.
 
 ## Features
@@ -13,6 +15,7 @@ pydipapi is a Python package that provides a simple and convenient wrapper aroun
 ## Requirements
 
 - An API key is required to use the Bundestag API. You can obtain this key from the German Bundestag.
+- Get your API key [here](https://dip.bundestag.de/%C3%BCber-dip/hilfe/api#content).
 - Python 3.7 or later.
 
 ## Documentation
