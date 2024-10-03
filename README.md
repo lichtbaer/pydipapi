@@ -56,8 +56,10 @@ print(persons)
 
 ```python
 # Retrieve a single person by ID
-person = dip.get_person_id(id=12345)
+person = dip.get_person_id(id=7355)
 print(person)
+
+{'id': '7355', 'nachname': 'Larem', 'vorname': 'Andreas', 'typ': 'Person', 'wahlperiode': 20, 'aktualisiert': '2022-07-26T19:57:10+02:00', 'titel': 'Andreas Larem, MdB, SPD', 'datum': '2024-09-26', 'basisdatum': '2022-01-27'}
 ```
 
 ## Contributing
