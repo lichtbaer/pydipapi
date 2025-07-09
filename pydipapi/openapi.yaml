@@ -3,7 +3,7 @@ openapi: "3.0.1"
 info:
   title: "Deutscher Bundestag - DIP"
   description: "API des Dokumentations- und Informationssystems für Parlamentsmaterialien"
-  version: "1.3"
+  version: "1.4"
   termsOfService: "https://dip.bundestag.de/%C3%BCber-dip/nutzungsbedingungen"
   contact:
     name: "Auskunfts- und Rechercheservice der Parlamentsdokumentation"
@@ -399,9 +399,12 @@ paths:
       - $ref: "#/components/parameters/DrucksachtypFilter"
       - $ref: "#/components/parameters/FrageNummerFilter"
       - $ref: "#/components/parameters/IdFilter"
+      - $ref: "#/components/parameters/PersonFilter"
+      - $ref: "#/components/parameters/PersonIdFilter"
       - $ref: "#/components/parameters/PlenarprotokollFilter"
       - $ref: "#/components/parameters/SachgebietFilter"
       - $ref: "#/components/parameters/UrheberFilter"
+      - $ref: "#/components/parameters/VorgangspositionIdFilter"
       - $ref: "#/components/parameters/VorgangstypFilter"
       - $ref: "#/components/parameters/VorgangstypNotationFilter"
       - $ref: "#/components/parameters/WahlperiodeFilter"
@@ -457,6 +460,7 @@ paths:
       - $ref: "#/components/parameters/DatumStartFilter"
       - $ref: "#/components/parameters/DatumEndFilter"
       - $ref: "#/components/parameters/IdFilter"
+      - $ref: "#/components/parameters/PersonFilter"
       - $ref: "#/components/parameters/WahlperiodeFilter"
       - $ref: "#/components/parameters/Cursor"
       - $ref: "#/components/parameters/Format"
@@ -503,12 +507,12 @@ components:
       type: "apiKey"
       in: "header"
       name: "Authorization"
-      description: "Beispiel: *ApiKey I9FKdCn.hbfefNWCY336dL6x62vfwNKpoN2RZ1gp21*\n"
+      description: "Beispiel: *ApiKey OSOegLs.PR2lwJ1dwCeje9vTj7FPOt3hvpYKtwKkhw*\n"
     ApiKeyQuery:
       type: "apiKey"
       in: "query"
       name: "apikey"
-      description: "Beispiel: *I9FKdCn.hbfefNWCY336dL6x62vfwNKpoN2RZ1gp21*\n"
+      description: "Beispiel: *OSOegLs.PR2lwJ1dwCeje9vTj7FPOt3hvpYKtwKkhw*\n"
   parameters:
     Id:
       name: "id"
@@ -616,6 +620,38 @@ components:
           type: "integer"
       description: "ID der Entität\n\nKann wiederholt werden, um mehrere Entitäten\
         \ zu selektieren.\n"
+    PersonFilter:
+      name: "f.person"
+      in: "query"
+      schema:
+        type: "array"
+        items:
+          type: "string"
+          example: ""
+      description: "Name einer Person\n\nSelektiert alle Entitäten, die den angegebenen\
+        \ Suchbegriff als Vor- oder Nachname einer Person enthalten.\nKann wiederholt\
+        \ werden, um mehrere Namen zu suchen. Hinterlegt ist eine ODER-Suche.\nEine\
+        \ Einzelwortsuche nach einem vollständig ausgeschriebenen Namensbestandteil\
+        \ ist möglich. Mehrere Suchbegriffe hintereinander werden als Phrase in der\
+        \ Reihenfolge \"Nachname Vorname\" gesucht.\n"
+      examples:
+        none:
+          summary: "--"
+          value: ""
+        single:
+          summary: "Steinmeier, Frank-Walter"
+          value:
+          - "Steinmeier Frank Walter"
+    PersonIdFilter:
+      name: "f.person_id"
+      in: "query"
+      schema:
+        type: "array"
+        items:
+          type: "integer"
+      description: "ID des verknüpften Haupteintrags der Personenstammdaten\n\nSelektiert\
+        \ alle Entitäten, die mit der angegebenen Person verknüpft sind.\nKann wiederholt\
+        \ werden, um mehrere Personen zu selektieren. Hinterlegt ist eine ODER-Suche.\n"
     PlenarprotokollFilter:
       name: "f.plenarprotokoll"
       in: "query"
@@ -704,6 +740,17 @@ components:
           summary: "B101"
           value:
           - "B101"
+    VorgangspositionIdFilter:
+      name: "f.vorgangsposition_id"
+      in: "query"
+      schema:
+        type: "array"
+        items:
+          type: "integer"
+      description: "ID einer verknüpften Vorgangsposition\n\nSelektiert alle Entitä\
+        ten, die mit der angegebenen Vorgangsposition verknüpft sind.\nKann wiederholt\
+        \ werden, um mehrere Vorgangspositionen zu selektieren. Hinterlegt ist eine\
+        \ ODER-Suche.\n"
     VorgangstypFilter:
       name: "f.vorgangstyp"
       in: "query"
@@ -1687,6 +1734,11 @@ components:
         titel:
           type: "string"
           example: "Olaf Scholz, Bundesmin., Bundesministerium der Finanzen"
+        person_id:
+          type: "string"
+          pattern: "^\\d+$"
+          example: 2413
+          description: "ID des Haupteintrags der zugehörigen Personenstammdaten"
         fundstelle:
           $ref: "#/components/schemas/Fundstelle"
         vorgangsbezug:
@@ -1719,6 +1771,7 @@ components:
       - "aktualisiert"
       - "titel"
       - "fundstelle"
+      - "person_id"
     Person:
       description: "Liefert Personenstammdaten zu einer Person"
       type: "object"
@@ -1742,10 +1795,15 @@ components:
           type: "string"
           example: "Person"
         wahlperiode:
-          type: "integer"
-          format: "int32"
-          example: 15
-          description: "Wahlperiode des ersten zugehörigen Dokuments"
+          type: "array"
+          items:
+            type: "integer"
+            format: "int32"
+          example:
+          - 17
+          - 18
+          - 19
+          description: "Wahlperioden aller zugehörigen Dokumente"
         basisdatum:
           type: "string"
           format: "date"
@@ -1764,6 +1822,23 @@ components:
         titel:
           type: "string"
           example: "Dr.  Ursula von der Leyen, Bundesmin., Bundesministerium der Verteidigung"
+        funktion:
+          type: "string"
+          example: "LMin Soz u. Frauen"
+        funktionszusatz:
+          type: "string"
+          example: "Stellv. MdBR"
+        fraktion:
+          type: "string"
+          example: "CDU/CSU"
+        wahlkreiszusatz:
+          type: "string"
+          example: "Hannover"
+        ressort:
+          type: "string"
+          example: "Bundesministerium für Familie, Senioren, Frauen und Jugend"
+        bundesland:
+          $ref: "#/components/schemas/Bundesland"
         person_roles:
           type: "array"
           items:
@@ -1777,6 +1852,7 @@ components:
       - "typ"
       - "aktualisiert"
       - "titel"
+      - "funktion"
     AktivitaetAnzeige:
       description: "Liefert im Vorgangsablauf die beim Vorgangsschritt zur Anzeige\
         \ vorgesehenen Aktivitäten, z. B. eine Rede eines MdB beim Vorgangsschritt\
@@ -1879,6 +1955,11 @@ components:
         pdf_url:
           type: "string"
           example: "https://dserver.bundestag.de/btd/19/000/1900001.pdf"
+        xml_url:
+          type: "string"
+          example: "https://dserver.bundestag.de/btp/20/20177.xml"
+          description: "Strukturierte XML-Version des Dokuments (aktuell nur für BT-Plenarprotokolle\
+            \ ab WP 18 verfügbar)"
         dokumentnummer:
           type: "string"
           example: "19/1"

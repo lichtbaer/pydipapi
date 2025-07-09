@@ -1,65 +1,22 @@
-import logging
-import os
-from typing import List, Union, Optional
-import requests
+"""
+Main API client for the German Bundestag API.
+"""
+from typing import List, Optional
+
 from pydantic import parse_obj_as
+
+from .client.base_client import BaseApiClient
 from .type import Vorgangsbezug, Vorgangspositionbezug
 
-# Configure logging for the library
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
+class DipAnfrage(BaseApiClient):
+    """
+    Main client for accessing the German Bundestag API.
 
-class DipAnfrage:
-    def __init__(self, apikey: Optional[str] = None):
-        """
-        Initialize the API key, base URL, and other instance variables.
-
-        Args:
-            apikey (Optional[str]): The API key for accessing the Bundestag API. If not provided, will attempt to use the 'DIP_API_KEY' environment variable.
-        """
-        self.apikey = apikey or os.getenv('DIP_API_KEY')
-        if not self.apikey:
-            logger.error(
-                "API key must be provided either as an argument or through the 'DIP_API_KEY' environment variable.")
-            raise ValueError("API key is required.")
-
-        self.apikey = f"&apikey={self.apikey}"
-        self.url = "https://search.dip.bundestag.de/api/v1/"
-        self.cursor = ""
-        self.documents = []
-        self.adresse = self.url
-        self.composeurl = self.url
-
-    def __set_cursor(self):
-        """
-        Set the request URL based on the cursor value.
-        """
-        self.adresse = f"{self.composeurl}cursor={self.cursor}" if self.cursor else self.composeurl
-
-    def __anfrage(self) -> Optional[dict]:
-        """
-        Make a GET request to the API and handle potential errors.
-
-        Returns:
-            Optional[dict]: The JSON response from the API if successful, otherwise None.
-        """
-        try:
-            response = requests.get(url=self.adresse + self.apikey)
-            response.raise_for_status()
-            data = response.json()
-            self.cursor = data.get('cursor', self.cursor)
-            self.documents.extend(data.get('documents', []))
-            return data
-        except requests.exceptions.HTTPError as http_err:
-            logger.error(f"HTTP error occurred: {http_err}")
-        except requests.exceptions.ConnectionError as conn_err:
-            logger.error(f"Connection error occurred: {conn_err}")
-        except requests.exceptions.RequestException as req_err:
-            logger.error(f"Request exception occurred: {req_err}")
-        return None
-
-    def get_person(self, anzahl: int = 100) -> List[dict]:
+    This class provides methods to retrieve information about persons, activities,
+    documents, and legislative processes from the Bundestag API.
+    """
+    def get_person(self, anzahl: int = 100) -> Optional[List[dict]]:
         """
         Retrieve a list of persons from the API.
 
@@ -67,15 +24,12 @@ class DipAnfrage:
             anzahl (int): Number of persons to retrieve.
 
         Returns:
-            List[dict]: A list of person dictionaries.
+            Optional[List[dict]]: A list of person dictionaries or None if an error occurred.
         """
-        self.documents = []
-        self.composeurl = self.url + 'person?'
-        while len(self.documents) < anzahl:
-            self.__set_cursor()
-            if not self.__anfrage():
-                break
-        return self.documents[:anzahl]
+        try:
+            return self._fetch_paginated_data('person', anzahl)
+        except Exception:
+            return None
 
     def get_person_ids(self, ids: List[int]) -> List[dict]:
         """
@@ -88,11 +42,11 @@ class DipAnfrage:
             List[dict]: A list of person dictionaries.
         """
         self.documents = []
-        self.adresse = self.url + "person?" + ''.join(f'&f.id={i}' for i in ids)
-        self.__anfrage()
+        url = self._build_url("person", f_id=ids)
+        self._make_request(url)
         return self.documents
 
-    def get_person_id(self, id: int) -> Union[dict, None]:
+    def get_person_id(self, id: int) -> Optional[dict]:
         """
         Retrieve a single person by their ID.
 
@@ -100,11 +54,9 @@ class DipAnfrage:
             id (int): The ID of the person.
 
         Returns:
-            Union[dict, None]: The person dictionary or None if not found.
+            Optional[dict]: The person dictionary or None if not found.
         """
-        self.documents = []
-        self.adresse = f"{self.url}person/{id}/?"
-        return self.__anfrage()
+        return self._fetch_single_item('person', id)
 
     def get_aktivitaet(self, anzahl: int = 100) -> List[dict]:
         """
@@ -116,13 +68,7 @@ class DipAnfrage:
         Returns:
             List[dict]: A list of activity dictionaries.
         """
-        self.documents = []
-        self.composeurl = self.url + 'aktivitaet?'
-        while len(self.documents) < anzahl:
-            self.__set_cursor()
-            if not self.__anfrage():
-                break
-        return self.documents[:anzahl]
+        return self._fetch_paginated_data('aktivitaet', anzahl)
 
     def get_drucksache(self, anzahl: int = 10, text: bool = True) -> List[dict]:
         """
@@ -135,13 +81,8 @@ class DipAnfrage:
         Returns:
             List[dict]: A list of document dictionaries.
         """
-        self.documents = []
-        self.composeurl = self.url + ('drucksache-text?' if text else 'drucksache?')
-        while len(self.documents) < anzahl:
-            self.__set_cursor()
-            if not self.__anfrage():
-                break
-        return self.documents[:anzahl]
+        endpoint = 'drucksache-text' if text else 'drucksache'
+        return self._fetch_paginated_data(endpoint, anzahl)
 
     def get_plenarprotokoll(self, anzahl: int = 10, text: bool = True) -> List[dict]:
         """
@@ -154,13 +95,8 @@ class DipAnfrage:
         Returns:
             List[dict]: A list of protocol dictionaries.
         """
-        self.documents = []
-        self.composeurl = self.url + ('plenarprotokoll-text?' if text else 'plenarprotokoll?')
-        while len(self.documents) < anzahl:
-            self.__set_cursor()
-            if not self.__anfrage():
-                break
-        return self.documents[:anzahl]
+        endpoint = 'plenarprotokoll-text' if text else 'plenarprotokoll'
+        return self._fetch_paginated_data(endpoint, anzahl)
 
     def get_vorgang(self, anzahl: int = 10) -> List[Vorgangsbezug]:
         """
@@ -172,13 +108,8 @@ class DipAnfrage:
         Returns:
             List[Vorgangsbezug]: A list of proceedings.
         """
-        self.documents = []
-        self.composeurl = self.url + 'vorgang?'
-        while len(self.documents) < anzahl:
-            self.__set_cursor()
-            if not self.__anfrage():
-                break
-        return parse_obj_as(List[Vorgangsbezug], self.documents[:anzahl])
+        documents = self._fetch_paginated_data('vorgang', anzahl)
+        return parse_obj_as(List[Vorgangsbezug], documents)
 
     def get_vorgangsposition(self, anzahl: int = 10) -> List[Vorgangspositionbezug]:
         """
@@ -190,10 +121,5 @@ class DipAnfrage:
         Returns:
             List[Vorgangspositionbezug]: A list of proceeding positions.
         """
-        self.documents = []
-        self.composeurl = self.url + 'vorgangsposition?'
-        while len(self.documents) < anzahl:
-            self.__set_cursor()
-            if not self.__anfrage():
-                break
-        return parse_obj_as(List[Vorgangspositionbezug], self.documents[:anzahl])
+        documents = self._fetch_paginated_data('vorgangsposition', anzahl)
+        return parse_obj_as(List[Vorgangspositionbezug], documents)

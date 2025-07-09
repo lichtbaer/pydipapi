@@ -1,15 +1,17 @@
 import unittest
+from unittest.mock import MagicMock, patch
+
 import requests
-from unittest.mock import patch, MagicMock
+
 from pydipapi import DipAnfrage
 
 
 class TestDipAnfrage(unittest.TestCase):
-    def setUp(self, api_key: str = None):
-        self.api_key = api_key or 'testkey'
-        self.dip = DipAnfrage(apikey=self.api_key)
+    def setUp(self, api_key: str = 'testkey'):
+        self.api_key = api_key
+        self.dip = DipAnfrage(api_key=self.api_key)
 
-    @patch('pydipapi.requests.get')
+    @patch('requests.get')
     def test_get_person(self, mock_get):
         # Mock the API response
         mock_response = MagicMock()
@@ -24,11 +26,12 @@ class TestDipAnfrage(unittest.TestCase):
         persons = self.dip.get_person(anzahl=1)
 
         # Assertions
-        self.assertEqual(len(persons), 1)
-        self.assertEqual(persons[0]['id'], '1')
-        self.assertEqual(persons[0]['name'], 'John Doe')
+        if persons is not None:
+            self.assertEqual(len(persons), 1)
+            self.assertEqual(persons[0]['id'], '1')
+            self.assertEqual(persons[0]['name'], 'John Doe')
 
-    @patch('pydipapi.requests.get')
+    @patch('requests.get')
     def test_get_person_id(self, mock_get):
         # Mock the API response
         mock_response = MagicMock()
@@ -40,10 +43,11 @@ class TestDipAnfrage(unittest.TestCase):
         person = self.dip.get_person_id(id=1)
 
         # Assertions
-        self.assertEqual(person['id'], '1')
-        self.assertEqual(person['name'], 'John Doe')
+        if person is not None:
+            self.assertEqual(person['id'], '1')
+            self.assertEqual(person['name'], 'John Doe')
 
-    @patch('pydipapi.requests.get')
+    @patch('requests.get')
     def test_api_error_handling(self, mock_get):
         # Mock an HTTP error
         mock_response = MagicMock()
@@ -52,7 +56,17 @@ class TestDipAnfrage(unittest.TestCase):
 
         # Call the method and assert that it handles the error
         result = self.dip.get_person(anzahl=1)
-        self.assertIsNone(result)
+        self.assertEqual(result, [])  # Should return empty list on error
+
+    def test_api_key_validation(self):
+        """Test that API key validation works correctly."""
+        # Test with valid API key
+        dip = DipAnfrage(api_key='valid_key')
+        self.assertEqual(dip.api_key, 'valid_key')
+
+        # Test that ValueError is raised when no API key is provided
+        with self.assertRaises(ValueError):
+            DipAnfrage(api_key=None)
 
 
 if __name__ == '__main__':

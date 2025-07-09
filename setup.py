@@ -1,9 +1,9 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 VERSION = '0.0.2'
 DESCRIPTION = 'pydipapi Package - A simple wrapper around the API of the German Bundestag.'
 
-with open("README.md", "r", encoding="utf-8") as fh:
+with open("README.md", encoding="utf-8") as fh:
     description = fh.read()
 # Setting up
 setup(

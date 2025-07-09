@@ -1,0 +1,23 @@
+site_name: pydipapi
+site_description: Python client for the German Bundestag API
+site_author: JG
+repo_url: https://github.com/lichtbaer/pydipapi
+
+theme:
+  name: material
+
+nav:
+  - Home: index.md
+  - Usage: usage.md
+  - API Reference: api_reference.md
+  - OpenAPI: openapi.md
+  - Developer Guide: development.md
+  - Changelog: changelog.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: true
