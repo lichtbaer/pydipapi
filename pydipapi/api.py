@@ -68,6 +68,26 @@ class DipAnfrage(BaseApiClient):
             logger.error(f"Response content: {response.text[:500]}...")
             return None
 
+    def _fetch_single_item(self, endpoint: str, item_id: int) -> Optional[Dict[str, Any]]:
+        """
+        Fetch a single item by ID.
+
+        Args:
+            endpoint (str): The API endpoint.
+            item_id (int): The ID of the item to fetch.
+
+        Returns:
+            Optional[Dict[str, Any]]: The item data or None if not found.
+        """
+        url = f"{self.base_url}/{endpoint}/{item_id}/"
+        data = self._make_request(url)
+        if data is None:
+            return None
+        if data and 'documents' in data:
+            documents = data['documents']
+            return documents[0] if documents else None
+        return None
+
     def _build_url(self, endpoint: str, **kwargs) -> str:
         """
         Build a URL for the given endpoint with parameters.

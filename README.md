@@ -213,9 +213,9 @@ Beiträge sind willkommen! Bitte lesen Sie den [Entwickler-Guide](https://lichtb
 
 ## 📊 Projekt-Status
 
-- **Version**: 1.0.0
+- **Version**: 0.1.0 (Beta)
 - **Python**: 3.9+
-- **Status**: Produktionsbereit
+- **Status**: Beta - Vorbereitung für 1.0.0
 - **Tests**: ✅ Bestehend
 - **Dokumentation**: ✅ Vollständig
 - **CI/CD**: ✅ Konfiguriert

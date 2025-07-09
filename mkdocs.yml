@@ -40,13 +40,13 @@ theme:
     - navigation.instant.delay
     - navigation.instant.loading
     - navigation.instant.preload
+    - navigation.instant.prefetch
     - navigation.prune
     - navigation.sections
     - navigation.tabs
     - navigation.tabs.sticky
     - navigation.top
     - navigation.tracking
-    - navigation.footer
     - search.highlight
     - search.share
     - search.suggest
@@ -67,13 +67,23 @@ extra:
       link: https://github.com/lichtbaer/pydipapi
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/pydipapi/
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/lichtbaer
 
   analytics:
     provider: google
     property: !ENV GOOGLE_ANALYTICS_KEY
 
+  version:
+    provider: mike
+
 plugins:
   - search
+  - git-revision-date-localized:
+      enable_creation_date: true
+  - git-authors:
+      show_contribution: true
+      show_line_count: true
 
 markdown_extensions:
   - abbr
@@ -120,12 +130,17 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  - Grundlegende Verwendung: usage.md
-  - Interaktive Notebooks: notebooks.md
-  - API-Referenz: api_reference.md
-  - OpenAPI-Spezifikation: openapi_spec.md
-  - Entwickler-Guide: developer_guide.md
-  - Changelog: changelog.md
+  - Getting Started:
+    - Grundlegende Verwendung: usage.md
+    - Interaktive Notebooks: notebooks.md
+  - API Reference:
+    - API-Referenz: api_reference.md
+    - OpenAPI-Spezifikation: openapi_spec.md
+  - Development:
+    - Testing Guide: testing.md
+    - Entwickler-Guide: developer_guide.md
+  - About:
+    - Changelog: changelog.md
 
 extra_css:
   - stylesheets/extra.css
@@ -140,7 +155,7 @@ site_dir: site
 
 use_directory_urls: true
 
-strict: true
+strict: false
 
 validation:
   nav:

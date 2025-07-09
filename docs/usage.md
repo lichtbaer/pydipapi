@@ -394,4 +394,4 @@ if __name__ == "__main__":
 
 - **[API-Referenz](api_reference.md)** - Vollständige API-Dokumentation
 - **[Entwickler-Guide](developer_guide.md)** - Erweiterte Nutzung
-- **[Jupyter Notebooks](../notebooks/)** - Interaktive Beispiele 
+- **[Jupyter Notebooks](notebooks.md)** - Interaktive Beispiele 

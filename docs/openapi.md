@@ -1,7 +1,5 @@
 # OpenAPI Specification
 
-The full OpenAPI specification for the Bundestag API is included in this repository as `pydipapi/openapi.yaml`.
+The full OpenAPI specification for the Bundestag API is included in the repository as `pydipapi/openapi.yaml` (not in the docs folder).
 
-- [Download openapi.yaml](../pydipapi/openapi.yaml)
-
-You can use this file with tools like Swagger UI, Postman, or openapi-python-client to generate code or explore the API interactively. 
+If you want to use the OpenAPI spec, download it from the repository and use it with tools like Swagger UI, Postman, or openapi-python-client to generate code or explore the API interactively. 

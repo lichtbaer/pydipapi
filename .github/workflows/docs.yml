@@ -35,6 +35,8 @@ jobs:
           pip install mkdocs-jupyter
           pip install pymdown-extensions
           pip install mkdocs-mike
+          pip install mkdocs-git-revision-date-localized-plugin
+          pip install mkdocs-git-authors-plugin
       
       - name: Build documentation
         run: |
