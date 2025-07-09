@@ -11,6 +11,8 @@ Ein moderner, vollständiger Python-Client für die deutsche Bundestag API (DIP)
 - **Retry-Logik** - Automatische Wiederholung bei Fehlern
 - **Flexible Filterung** - Umfassende Such- und Filteroptionen
 - **Convenience-Methoden** - Einfache Abfragen für häufige Anwendungsfälle
+- **Content-Parser** - Strukturierte Extraktion von Protokollen, Dokumenten und Personen
+- **Async-Support** - Asynchrone API-Aufrufe für bessere Performance
 - **Vollständige Dokumentation** - Detaillierte API-Referenz und Beispiele
 
 ## 📦 Installation
@@ -39,7 +41,7 @@ jupyter lab
 ### 💻 Code-Beispiele
 
 ```python
-from pydipapi import DipAnfrage
+from pydipapi import DipAnfrage, ProtocolParser, DocumentParser, PersonParser
 
 # Client initialisieren
 dip = DipAnfrage(api_key='ihr_api_key')
@@ -56,6 +58,13 @@ persons_batch = dip.get_person_ids(person_ids)
 
 # Convenience-Methoden
 recent_activities = dip.get_recent_activities(days=7)
+
+# Content-Parser verwenden
+parser = ProtocolParser()
+protocols = dip.get_plenarprotokoll(anzahl=1, text=True)
+if protocols:
+    parsed = parser.parse(protocols[0])
+    print(f"Sprecher: {parsed['parsed']['speakers']['total_speakers']}")
 ```
 
 ## 📚 Dokumentation
@@ -82,14 +91,14 @@ dip = DipAnfrage(
 
 ## 📊 Verfügbare Endpunkte
 
-| Endpunkt | Beschreibung | Batch-Support |
-|----------|--------------|---------------|
-| `get_person()` | Personen abrufen | ✅ |
-| `get_aktivitaet()` | Aktivitäten abrufen | ✅ |
-| `get_drucksache()` | Dokumente abrufen | ✅ |
-| `get_plenarprotokoll()` | Protokolle abrufen | ✅ |
-| `get_vorgang()` | Vorgänge abrufen | ✅ |
-| `get_vorgangsposition()` | Vorgangspositionen abrufen | ✅ |
+| Endpunkt | Beschreibung | Batch-Support | Parser |
+|----------|--------------|---------------|--------|
+| `get_person()` | Personen abrufen | ✅ | PersonParser |
+| `get_aktivitaet()` | Aktivitäten abrufen | ✅ | ActivityParser |
+| `get_drucksache()` | Dokumente abrufen | ✅ | DocumentParser |
+| `get_plenarprotokoll()` | Protokolle abrufen | ✅ | ProtocolParser |
+| `get_vorgang()` | Vorgänge abrufen | ✅ | - |
+| `get_vorgangsposition()` | Vorgangspositionen abrufen | ✅ | - |
 
 ## 🔍 Filter-Optionen
 
@@ -140,6 +149,35 @@ persons = dip.get_person_ids(person_ids)
 
 doc_ids = [12345, 67890]
 docs = dip.get_drucksache_ids(doc_ids, text=True)
+```
+
+### Content-Parser
+```python
+from pydipapi import ProtocolParser, DocumentParser, PersonParser
+
+# Protokoll-Parser für Volltext-Plenarprotokolle
+protocol_parser = ProtocolParser()
+protocols = dip.get_plenarprotokoll(anzahl=1, text=True)
+if protocols:
+    parsed = protocol_parser.parse(protocols[0])
+    print(f"Sprecher: {parsed['parsed']['speakers']['total_speakers']}")
+    print(f"Interventionen: {parsed['parsed']['interventions']['total_interventions']}")
+
+# Dokument-Parser für strukturierte Dokumente
+doc_parser = DocumentParser()
+docs = dip.get_drucksache(anzahl=1)
+if docs:
+    parsed = doc_parser.parse(docs[0])
+    print(f"Autoren: {len(parsed['parsed']['authors'])}")
+    print(f"Parteien: {parsed['parsed']['parties']}")
+
+# Personen-Parser für Abgeordnete
+person_parser = PersonParser()
+persons = dip.get_person(anzahl=1)
+if persons:
+    parsed = person_parser.parse(persons[0])
+    print(f"Name: {parsed['parsed']['basic_info']['name']}")
+    print(f"Partei: {parsed['parsed']['party_info']['current_party']}")
 ```
 
 ## 🛠️ Entwicklung
