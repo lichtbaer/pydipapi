@@ -46,6 +46,14 @@ Diese Datei dokumentiert die noch zu implementierenden Features und Verbesserung
   - [ ] Full-Text Search Integration
   - [ ] Field-specific Filtering
 
+- [ ] **Content Parser**
+  - [ ] Drucksachen-Parser (PDF/HTML zu strukturierten Daten)
+  - [ ] Vorgänge-Parser (Workflow-Extraktion)
+  - [ ] Vorgangspositionen-Parser (Timeline-Analyse)
+  - [ ] Plenarprotokolle-Parser (Redebeiträge, Abstimmungen)
+  - [ ] Metadaten-Extraktion
+  - [ ] Text-Preprocessing für Analyse
+
 **Dokumentation**
 - [ ] **API-Referenz vervollständigen**
   - [ ] Alle Parameter dokumentieren
@@ -79,6 +87,13 @@ Diese Datei dokumentiert die noch zu implementierenden Features und Verbesserung
   - [ ] Excel-Export (optional)
   - [ ] Direct Database Export
 
+- [ ] **Text Analysis Integration**
+  - [ ] NLP-Pipeline für Plenarprotokolle
+  - [ ] Sentiment-Analyse für Redebeiträge
+  - [ ] Topic-Modeling für Drucksachen
+  - [ ] Named Entity Recognition
+  - [ ] Keyword-Extraktion
+
 #### Low Priority (Nice to Have)
 
 **Advanced Features**
@@ -91,6 +106,34 @@ Diese Datei dokumentiert die noch zu implementierenden Features und Verbesserung
   - [ ] Performance-Metriken
   - [ ] Usage-Tracking
 
+### 📄 Content Parser - Technische Details
+
+#### Parser-Architektur
+**Drucksachen-Parser:**
+- PDF-Extraktion mit `pdfplumber` oder `PyMuPDF`
+- HTML-Parser für Online-Versionen
+- Strukturerkennung (Titel, Inhalt, Anlagen)
+- Metadaten-Extraktion (Autor, Datum, Typ)
+
+**Plenarprotokolle-Parser:**
+- Redebeitrags-Segmentierung
+- Sprecher-Identifikation
+- Abstimmungsergebnisse-Extraktion
+- Zwischenrufe und Reaktionen
+
+**Vorgänge/Vorgangspositionen-Parser:**
+- Workflow-Timeline-Extraktion
+- Status-Tracking
+- Beziehungen zwischen Dokumenten
+- Gesetzgebungsverfahren-Mapping
+
+#### Technische Dependencies
+- `pdfplumber` - PDF-Text-Extraktion
+- `beautifulsoup4` - HTML-Parsing
+- `spacy` - NLP-Pipeline (optional)
+- `pandas` - Datenstrukturierung
+- `dateutil` - Datums-Parsing
+
 ### 🧪 Testing-Strategie
 
 #### Test-Kategorien
@@ -99,6 +142,7 @@ Diese Datei dokumentiert die noch zu implementierenden Features und Verbesserung
 3. **Performance Tests** - Batch-Operationen, Cache-Performance
 4. **Security Tests** - Input-Validation, API-Key-Handling
 5. **Compatibility Tests** - Python-Versionen, Dependencies
+6. **Parser Tests** - Dokument-Parsing-Genauigkeit
 
 #### Test-Environment
 - **Mock-Server** für Offline-Tests
@@ -120,11 +164,14 @@ Diese Datei dokumentiert die noch zu implementierenden Features und Verbesserung
 - Umfassende Test-Suite
 - Async Support (grundlegend)
 - Verbesserte Dokumentation
+- Grundlegende Parser (Drucksachen, Plenarprotokolle)
 
 #### Version 0.3.0
 - Erweiterte Filtering-Features
 - CLI-Tool (basic)
 - Performance-Optimierungen
+- Vollständige Parser-Suite (Vorgänge, Vorgangspositionen)
+- Text-Analysis-Integration
 
 #### Version 0.4.0 (Release Candidate)
 - Vollständige Async-Unterstützung
@@ -161,6 +208,8 @@ Bereiche wo Beiträge besonders willkommen sind:
 - Testing (Unit/Integration Tests)
 - Dokumentation und Beispiele
 - Performance-Optimierungen
+- Content-Parser für Bundestag-Dokumente
+- NLP/Text-Analysis-Features
 - Feature-Requests und Bug-Reports
 
 ### 📞 Feedback
