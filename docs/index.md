@@ -27,6 +27,17 @@ pip install pydipapi
 
 ## 🎯 Schnellstart
 
+### 📓 Interaktives Lernen (Empfohlen)
+Nutzen Sie unsere **[Jupyter Notebooks](notebooks.md)** für eine Schritt-für-Schritt Einführung:
+
+```bash
+# Notebooks starten
+jupyter lab
+# Dann: notebooks/01_basic_usage.ipynb öffnen
+```
+
+### 💻 Code-Beispiele
+
 ```python
 from pydipapi import DipAnfrage
 
@@ -50,6 +61,7 @@ recent_activities = dip.get_recent_activities(days=7)
 ## 📚 Dokumentation
 
 - **[Grundlegende Verwendung](usage.md)** - Erste Schritte und grundlegende Funktionen
+- **[Interaktive Notebooks](notebooks.md)** - Jupyter Notebooks für praktisches Lernen
 - **[API-Referenz](api_reference.md)** - Vollständige API-Dokumentation mit Filter-Mapping
 - **[OpenAPI-Spezifikation](openapi_spec.md)** - Technische API-Details
 - **[Entwickler-Guide](developer_guide.md)** - Erweiterte Nutzung und Entwicklung

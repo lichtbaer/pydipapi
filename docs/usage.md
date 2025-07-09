@@ -2,6 +2,10 @@
 
 Dieser Guide zeigt Ihnen, wie Sie pydipapi für den Zugriff auf die deutsche Bundestag API verwenden.
 
+!!! tip "Interaktive Lernumgebung"
+    Für eine praxisnahe Einführung nutzen Sie unsere **[Jupyter Notebooks](notebooks.md)**! 
+    Diese bieten Schritt-für-Schritt Anleitungen mit ausführbarem Code in drei Schwierigkeitsstufen.
+
 ## Installation
 
 ```bash

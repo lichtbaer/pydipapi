@@ -59,18 +59,19 @@ Die vollständige Dokumentation ist verfügbar unter: **[https://lichtbaer.githu
 ### Dokumentationsseiten
 
 - **[Grundlegende Verwendung](https://lichtbaer.github.io/pydipapi/usage/)** - Erste Schritte und grundlegende Funktionen
+- **[Interaktive Notebooks](https://lichtbaer.github.io/pydipapi/notebooks/)** - Jupyter Notebooks für praktisches Lernen
 - **[API-Referenz](https://lichtbaer.github.io/pydipapi/api_reference/)** - Vollständige API-Dokumentation mit Filter-Mapping
 - **[OpenAPI-Spezifikation](https://lichtbaer.github.io/pydipapi/openapi_spec/)** - Technische API-Details
 - **[Entwickler-Guide](https://lichtbaer.github.io/pydipapi/developer_guide/)** - Erweiterte Nutzung und Entwicklung
 - **[Changelog](https://lichtbaer.github.io/pydipapi/changelog/)** - Versionshistorie und Änderungen
 
-### Jupyter Notebooks
+### 📓 Jupyter Notebooks
 
-Interaktive Beispiele und Tutorials:
+Interaktive Tutorials für praktisches Lernen (im `notebooks/` Verzeichnis):
 
-- **[Grundlegende Verwendung](https://lichtbaer.github.io/pydipapi/notebooks/01_basic_usage/)** - Erste Schritte mit der API
-- **[Filter und Suche](https://lichtbaer.github.io/pydipapi/notebooks/02_filtering_and_search/)** - Erweiterte Filteroptionen
-- **[Batch-Operationen](https://lichtbaer.github.io/pydipapi/notebooks/03_batch_operations/)** - Performance-Optimierung
+- **`01_basic_usage.ipynb`** - Grundlagen und erste Schritte mit der API
+- **`02_filtering_and_search.ipynb`** - Erweiterte Filteroptionen und Suchfunktionen  
+- **`03_batch_operations_and_caching.ipynb`** - Performance-Optimierung und Batch-Operationen
 
 ## 🔧 Konfiguration
 
