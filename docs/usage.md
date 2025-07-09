@@ -2,6 +2,9 @@
 
 Dieser Guide zeigt Ihnen, wie Sie pydipapi für den Zugriff auf die deutsche Bundestag API verwenden.
 
+!!! tip "Async Support"
+    pydipapi bietet sowohl synchrone als auch asynchrone APIs. Für bessere Performance bei mehreren gleichzeitigen Anfragen verwenden Sie die Async-Version!
+
 !!! tip "Interaktive Lernumgebung"
     Für eine praxisnahe Einführung nutzen Sie unsere **[Jupyter Notebooks](notebooks.md)**! 
     Diese bieten Schritt-für-Schritt Anleitungen mit ausführbarem Code in drei Schwierigkeitsstufen.
@@ -26,6 +29,8 @@ export DIP_API_KEY='ihr_api_key'
 
 ### Client initialisieren
 
+### Synchrone API
+
 ```python
 from pydipapi import DipAnfrage
 
@@ -40,6 +45,32 @@ dip = DipAnfrage(
     enable_cache=True,        # Caching aktivieren
     cache_ttl=3600           # Cache-TTL in Sekunden
 )
+```
+
+### Asynchrone API
+
+```python
+import asyncio
+from pydipapi import AsyncDipAnfrage
+
+# Async Client mit Context Manager
+async def main():
+    async with AsyncDipAnfrage(api_key='ihr_api_key') as dip:
+        # Alle async Methoden haben die gleichen Namen wie die sync Versionen
+        persons = await dip.get_person(anzahl=10)
+        activities = await dip.get_aktivitaet(anzahl=10)
+        
+        # Gleichzeitige Anfragen für bessere Performance
+        tasks = [
+            dip.get_person(anzahl=5),
+            dip.get_aktivitaet(anzahl=5),
+            dip.get_drucksache(anzahl=5)
+        ]
+        results = await asyncio.gather(*tasks)
+        persons, activities, documents = results
+
+# Ausführen
+asyncio.run(main())
 ```
 
 ### Personen abrufen

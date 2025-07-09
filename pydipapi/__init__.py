@@ -22,6 +22,7 @@ Example:
 """
 
 from .api import DipAnfrage
+from .async_api import AsyncDipAnfrage
 from .type import Vorgangsbezug, Vorgangspositionbezug
 
 __version__ = "0.1.0"
@@ -35,6 +36,7 @@ __documentation__ = "https://lichtbaer.github.io/pydipapi/"
 # Public API
 __all__ = [
     "DipAnfrage",
+    "AsyncDipAnfrage",
     "Vorgangsbezug",
     "Vorgangspositionbezug",
     "__version__",
