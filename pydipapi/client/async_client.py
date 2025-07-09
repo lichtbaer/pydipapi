@@ -4,15 +4,12 @@ Async client for the DIP API with rate limiting, retry logic, and caching.
 
 import asyncio
 import logging
-import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import aiohttp
-import requests
 
-from .base_client import BaseApiClient
 from ..util.cache import SimpleCache
-from ..util.error_handler import handle_api_error, is_rate_limited, should_retry
+from ..util.error_handler import is_rate_limited, should_retry
 
 logger = logging.getLogger(__name__)
 
@@ -240,4 +237,4 @@ class AsyncBaseApiClient:
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Async context manager exit."""
-        await self.close() 
+        await self.close()

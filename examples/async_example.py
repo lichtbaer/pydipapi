@@ -6,7 +6,7 @@ This example demonstrates how to use the async API client for concurrent request
 
 import asyncio
 import os
-from typing import List, Dict, Any
+
 from pydipapi import AsyncDipAnfrage
 
 
@@ -24,7 +24,7 @@ async def main():
 
         # Example 1: Concurrent requests for different data types
         print("\n📊 Fetching different data types concurrently...")
-        
+
         try:
             # Create tasks for concurrent execution
             tasks = [
@@ -33,12 +33,12 @@ async def main():
                 client.get_drucksache(anzahl=5),
                 client.get_vorgang(anzahl=5)
             ]
-            
+
             # Execute all tasks concurrently
             results = await asyncio.gather(*tasks)
-            
+
             persons, activities, documents, proceedings = results
-            
+
             print(f"✅ Retrieved {len(persons)} persons")
             print(f"✅ Retrieved {len(activities)} activities")
             print(f"✅ Retrieved {len(documents)} documents")
@@ -90,11 +90,11 @@ async def performance_comparison():
         return
 
     print("\n⚡ Performance comparison...")
-    
+
     # Async version
     async with AsyncDipAnfrage(api_key=api_key) as async_client:
         start_time = asyncio.get_event_loop().time()
-        
+
         try:
             # Make multiple concurrent requests
             tasks = [
@@ -104,10 +104,10 @@ async def performance_comparison():
                 async_client.get_vorgang(anzahl=3),
                 async_client.get_plenarprotokoll(anzahl=3)
             ]
-            
+
             results = await asyncio.gather(*tasks)
             async_time = asyncio.get_event_loop().time() - start_time
-            
+
             total_items = sum(len(result) for result in results)
             print(f"⏱️  Async execution time: {async_time:.2f} seconds")
             print(f"📊 Total items retrieved: {total_items}")
@@ -118,6 +118,6 @@ async def performance_comparison():
 if __name__ == "__main__":
     # Run the main example
     asyncio.run(main())
-    
+
     # Run performance comparison
-    asyncio.run(performance_comparison()) 
+    asyncio.run(performance_comparison())

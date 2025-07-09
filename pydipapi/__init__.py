@@ -8,13 +8,13 @@ members, activities, and protocols.
 
 from .api import DipAnfrage
 from .async_api import AsyncDipAnfrage
-from .client.base_client import BaseApiClient
 from .client.async_client import AsyncBaseApiClient
+from .client.base_client import BaseApiClient
 from .parsers import (
+    ActivityParser,
     BaseParser,
     DocumentParser,
     PersonParser,
-    ActivityParser,
     ProtocolParser,
 )
 
@@ -24,7 +24,7 @@ __email__ = "your.email@example.com"
 
 __all__ = [
     "DipAnfrage",
-    "AsyncDipAnfrage", 
+    "AsyncDipAnfrage",
     "BaseApiClient",
     "AsyncBaseApiClient",
     "BaseParser",

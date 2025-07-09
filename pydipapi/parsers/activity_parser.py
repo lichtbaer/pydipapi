@@ -2,8 +2,8 @@
 Activity parser for extracting structured data from activity/plenary session responses.
 """
 
-from typing import Any, Dict, List, Optional, Union
 from datetime import datetime
+from typing import Any, Dict, List, Optional, Union
 
 from .base_parser import BaseParser
 
@@ -19,7 +19,7 @@ class ActivityParser(BaseParser):
     def __init__(self):
         """Initialize the activity parser."""
         super().__init__()
-        
+
         # Activity type patterns
         self._activity_patterns = {
             'plenary_session': r'plenarsitzung',
@@ -59,9 +59,9 @@ class ActivityParser(BaseParser):
         """
         if not activity:
             return {}
-            
+
         parsed = activity.copy()
-        
+
         # Extract basic information
         parsed['parsed'] = {
             'activity_type': self._extract_activity_type(activity),
@@ -73,7 +73,7 @@ class ActivityParser(BaseParser):
             'dates': self._extract_dates(activity),
             'references': self._extract_references(activity),
         }
-        
+
         return parsed
 
     def _extract_activity_type(self, activity: Dict[str, Any]) -> Optional[str]:
@@ -90,16 +90,16 @@ class ActivityParser(BaseParser):
         activity_type = activity.get('aktivitaetstyp', activity.get('type', ''))
         if activity_type:
             return activity_type.lower().replace(' ', '_')
-            
+
         # Extract from title or description
         title = activity.get('titel', '')
         description = activity.get('beschreibung', '')
         combined_text = f"{title} {description}".lower()
-        
+
         for activity_type, pattern in self._activity_patterns.items():
             if self.extract_text(combined_text, pattern):
                 return activity_type
-                
+
         return None
 
     def _extract_session_info(self, activity: Dict[str, Any]) -> Dict[str, Any]:
@@ -121,7 +121,7 @@ class ActivityParser(BaseParser):
             'location': activity.get('ort', ''),
             'status': activity.get('status', ''),
         }
-        
+
         return session_info
 
     def _extract_participants(self, activity: Dict[str, Any]) -> Dict[str, Any]:
@@ -140,7 +140,7 @@ class ActivityParser(BaseParser):
             'parties_present': [],
             'ministers_present': [],
         }
-        
+
         # Extract from explicit participant fields
         if 'teilnehmer' in activity:
             for participant in activity['teilnehmer']:
@@ -154,7 +154,7 @@ class ActivityParser(BaseParser):
                     participants['speakers'].append(participant_info)
                 elif isinstance(participant, str):
                     participants['speakers'].append({'name': participant})
-                    
+
         # Extract from text content
         text = activity.get('beschreibung', '') + ' ' + activity.get('protokoll', '')
         if text:
@@ -162,7 +162,7 @@ class ActivityParser(BaseParser):
             parties = self.extract_parties(text)
             if parties:
                 participants['parties_present'] = parties
-                
+
         return participants
 
     def _extract_topics(self, activity: Dict[str, Any]) -> Dict[str, Any]:
@@ -181,7 +181,7 @@ class ActivityParser(BaseParser):
             'documents_discussed': [],
             'laws_discussed': [],
         }
-        
+
         # Extract from explicit topic fields
         if 'themen' in activity:
             for topic in activity['themen']:
@@ -195,7 +195,7 @@ class ActivityParser(BaseParser):
                     topics['main_topics'].append(topic_info)
                 elif isinstance(topic, str):
                     topics['main_topics'].append({'title': topic})
-                    
+
         # Extract from text content
         text = activity.get('beschreibung', '') + ' ' + activity.get('protokoll', '')
         if text:
@@ -203,7 +203,7 @@ class ActivityParser(BaseParser):
             laws = self.extract_laws(text)
             if laws:
                 topics['laws_discussed'] = laws
-                
+
         return topics
 
     def _extract_votes(self, activity: Dict[str, Any]) -> Dict[str, Any]:
@@ -224,7 +224,7 @@ class ActivityParser(BaseParser):
             'abstentions': 0,
             'absent': 0,
         }
-        
+
         # Extract from explicit vote fields
         if 'abstimmungen' in activity:
             for vote in activity['abstimmungen']:
@@ -238,13 +238,13 @@ class ActivityParser(BaseParser):
                         'absent': vote.get('abwesend', 0),
                     }
                     votes['vote_results'].append(vote_info)
-                    
+
                     # Update totals
                     votes['yes_votes'] += vote_info['yes']
                     votes['no_votes'] += vote_info['no']
                     votes['abstentions'] += vote_info['abstentions']
                     votes['absent'] += vote_info['absent']
-                    
+
         # Extract from text content
         text = activity.get('beschreibung', '') + ' ' + activity.get('protokoll', '')
         if text:
@@ -255,7 +255,7 @@ class ActivityParser(BaseParser):
                 r'(\d+)\s+enthaltungen',
                 r'(\d+)\s+abwesend',
             ]
-            
+
             for pattern in vote_patterns:
                 match = self.extract_text(text, pattern)
                 if match:
@@ -268,9 +268,9 @@ class ActivityParser(BaseParser):
                         votes['abstentions'] = number
                     elif 'abwesend' in pattern:
                         votes['absent'] = number
-                        
+
         votes['total_votes'] = votes['yes_votes'] + votes['no_votes'] + votes['abstentions']
-        
+
         return votes
 
     def _extract_procedural_info(self, activity: Dict[str, Any]) -> Dict[str, Any]:
@@ -290,17 +290,17 @@ class ActivityParser(BaseParser):
             'procedural_motions': [],
             'interruptions': [],
         }
-        
+
         # Extract from text content
         text = activity.get('beschreibung', '') + ' ' + activity.get('protokoll', '')
         if text:
             # Look for procedural elements
             if 'unterbrechung' in text.lower():
                 procedural_info['has_interruptions'] = True
-                
+
             if 'geschäftsordnung' in text.lower():
                 procedural_info['has_procedural_motions'] = True
-                
+
         return procedural_info
 
     def _extract_dates(self, activity: Dict[str, Any]) -> Dict[str, Optional[datetime]]:
@@ -314,13 +314,13 @@ class ActivityParser(BaseParser):
             Dictionary of date types and their values
         """
         dates = {}
-        
+
         # Extract from explicit date fields
         date_fields = ['datum', 'sitzungsdatum', 'start_datum', 'end_datum']
         for field in date_fields:
             if field in activity:
                 dates[field] = self.parse_date(str(activity[field]))
-                
+
         # Extract from text content
         text = activity.get('beschreibung', '') + ' ' + activity.get('protokoll', '')
         if text:
@@ -329,7 +329,7 @@ class ActivityParser(BaseParser):
                 r'(\d{1,2}\.\d{1,2}\.\d{4})',  # DD.MM.YYYY
                 r'(\d{4}-\d{1,2}-\d{1,2})',    # YYYY-MM-DD
             ]
-            
+
             for pattern in date_patterns:
                 matches = self.extract_all_text(text, pattern)
                 for match in matches:
@@ -337,7 +337,7 @@ class ActivityParser(BaseParser):
                     if parsed_date:
                         dates['extracted_date'] = parsed_date
                         break
-                        
+
         return dates
 
     def _extract_references(self, activity: Dict[str, Any]) -> Dict[str, List[str]]:
@@ -353,10 +353,10 @@ class ActivityParser(BaseParser):
         text = activity.get('beschreibung', '') + ' ' + activity.get('protokoll', '')
         if not text:
             return {}
-            
+
         return {
             'links': self.extract_links(text),
             'laws': self.extract_laws(text),
             'emails': self.extract_emails(text),
             'phone_numbers': self.extract_phone_numbers(text),
-        } 
+        }

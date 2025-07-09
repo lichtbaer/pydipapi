@@ -6,32 +6,39 @@ structured information from API responses.
 """
 
 import os
-from pydipapi import DipAnfrage, DocumentParser, PersonParser, ActivityParser, ProtocolParser
+
+from pydipapi import (
+    ActivityParser,
+    DipAnfrage,
+    DocumentParser,
+    PersonParser,
+    ProtocolParser,
+)
 
 
 def main():
     """Demonstrate content parser usage."""
-    
+
     # Initialize the API client
     api_key = os.getenv('DIP_API_KEY')
     if not api_key:
         print("Please set the DIP_API_KEY environment variable")
         return
-        
+
     client = DipAnfrage(api_key=api_key)
-    
+
     # Initialize parsers
     document_parser = DocumentParser()
     person_parser = PersonParser()
     activity_parser = ActivityParser()
     protocol_parser = ProtocolParser()
-    
+
     print("=== Content Parsers Example ===\n")
-    
+
     # Example 1: Parse documents
     print("1. Parsing Documents")
     print("-" * 30)
-    
+
     try:
         documents = client.get_drucksache(anzahl=3)
         if documents:
@@ -50,11 +57,11 @@ def main():
             print("No documents found")
     except Exception as e:
         print(f"Error parsing documents: {e}")
-    
+
     # Example 2: Parse persons
     print("2. Parsing Persons")
     print("-" * 30)
-    
+
     try:
         persons = client.get_person(anzahl=3)
         if persons:
@@ -73,11 +80,11 @@ def main():
             print("No persons found")
     except Exception as e:
         print(f"Error parsing persons: {e}")
-    
+
     # Example 3: Parse activities
     print("3. Parsing Activities")
     print("-" * 30)
-    
+
     try:
         activities = client.get_aktivitaet(anzahl=3)
         if activities:
@@ -96,11 +103,11 @@ def main():
             print("No activities found")
     except Exception as e:
         print(f"Error parsing activities: {e}")
-    
+
     # Example 4: Parse protocols
     print("4. Parsing Protocols")
     print("-" * 30)
-    
+
     try:
         protocols = client.get_plenarprotokoll(anzahl=3)
         if protocols:
@@ -121,11 +128,11 @@ def main():
             print("No protocols found")
     except Exception as e:
         print(f"Error parsing protocols: {e}")
-    
+
     # Example 5: Advanced parsing with custom data
     print("5. Advanced Parsing Example")
     print("-" * 30)
-    
+
     # Create sample data for demonstration
     sample_document = {
         'titel': 'Kleine Anfrage der Abgeordneten Dr. Alice Schmidt (CDU/CSU)',
@@ -133,7 +140,7 @@ def main():
         'datum': '2024-01-15',
         'dokumentart': 'Kleine Anfrage'
     }
-    
+
     print("Parsing sample document:")
     parsed_sample = document_parser.parse(sample_document)
     if isinstance(parsed_sample, dict) and 'parsed' in parsed_sample:
@@ -143,9 +150,9 @@ def main():
         print(f"  Emails: {parsed.get('references', {}).get('emails', [])}")
         print(f"  Phone Numbers: {parsed.get('references', {}).get('phone_numbers', [])}")
         print(f"  Parties: {parsed.get('parties', [])}")
-    
+
     print("\n=== Content Parsers Example Complete ===")
 
 
 if __name__ == "__main__":
-    main() 
+    main()

@@ -4,7 +4,7 @@ Tests for the async API client.
 
 import asyncio
 import unittest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 from pydipapi import AsyncDipAnfrage
 
@@ -38,7 +38,7 @@ class TestAsyncDipAnfrage(unittest.TestCase):
         mock_response.json = AsyncMock(return_value={'documents': [{'id': 1}]})
         mock_response.status = 200
         mock_session.get.return_value.__aenter__.return_value = mock_response
-        
+
         with patch.object(self.async_client, '_get_session', return_value=mock_session):
             result = await self.async_client._make_request('https://test.com')
             self.assertEqual(result, {'documents': [{'id': 1}]})
@@ -55,7 +55,7 @@ class TestAsyncDipAnfrage(unittest.TestCase):
         })
         mock_response.status = 200
         mock_session.get.return_value.__aenter__.return_value = mock_response
-        
+
         with patch.object(self.async_client, '_get_session', return_value=mock_session):
             result = await self.async_client._fetch_paginated_data('person', 5)
             self.assertEqual(len(result), 2)
@@ -64,7 +64,7 @@ class TestAsyncDipAnfrage(unittest.TestCase):
         """Test async get person."""
         with patch.object(self.async_client, '_fetch_paginated_data', new_callable=AsyncMock) as mock_fetch:
             mock_fetch.return_value = [{'id': 1, 'name': 'Test Person'}]
-            
+
             result = await self.async_client.get_person(anzahl=5)
             self.assertEqual(len(result), 1)
             self.assertEqual(result[0]['name'], 'Test Person')
@@ -73,7 +73,7 @@ class TestAsyncDipAnfrage(unittest.TestCase):
         """Test async get person IDs."""
         with patch.object(self.async_client, '_make_request', new_callable=AsyncMock) as mock_request:
             mock_request.return_value = {'documents': [{'id': 1}, {'id': 2}]}
-            
+
             result = await self.async_client.get_person_ids([1, 2])
             self.assertEqual(len(result), 2)
 
@@ -81,7 +81,7 @@ class TestAsyncDipAnfrage(unittest.TestCase):
         """Test async search documents."""
         with patch.object(self.async_client, '_fetch_paginated_data', new_callable=AsyncMock) as mock_fetch:
             mock_fetch.return_value = [{'id': 1, 'title': 'Test Document'}]
-            
+
             result = await self.async_client.search_documents("test", anzahl=5)
             self.assertEqual(len(result), 1)
             self.assertEqual(result[0]['title'], 'Test Document')
@@ -90,7 +90,7 @@ class TestAsyncDipAnfrage(unittest.TestCase):
         """Test async get recent activities."""
         with patch.object(self.async_client, '_fetch_paginated_data', new_callable=AsyncMock) as mock_fetch:
             mock_fetch.return_value = [{'id': 1, 'type': 'activity'}]
-            
+
             result = await self.async_client.get_recent_activities(days=7, anzahl=5)
             self.assertEqual(len(result), 1)
             self.assertEqual(result[0]['type'], 'activity')
@@ -99,7 +99,7 @@ class TestAsyncDipAnfrage(unittest.TestCase):
         """Test async get person by name."""
         with patch.object(self.async_client, '_fetch_paginated_data', new_callable=AsyncMock) as mock_fetch:
             mock_fetch.return_value = [{'id': 1, 'name': 'Test Person'}]
-            
+
             result = await self.async_client.get_person_by_name("Test", anzahl=5)
             self.assertEqual(len(result), 1)
             self.assertEqual(result[0]['name'], 'Test Person')
@@ -108,7 +108,7 @@ class TestAsyncDipAnfrage(unittest.TestCase):
         """Test async get documents by type."""
         with patch.object(self.async_client, '_fetch_paginated_data', new_callable=AsyncMock) as mock_fetch:
             mock_fetch.return_value = [{'id': 1, 'type': 'kleine_anfrage'}]
-            
+
             result = await self.async_client.get_documents_by_type("kleine_anfrage", anzahl=5)
             self.assertEqual(len(result), 1)
             self.assertEqual(result[0]['type'], 'kleine_anfrage')
@@ -117,7 +117,7 @@ class TestAsyncDipAnfrage(unittest.TestCase):
         """Test async get proceedings by type."""
         with patch.object(self.async_client, '_fetch_paginated_data', new_callable=AsyncMock) as mock_fetch:
             mock_fetch.return_value = [{'id': 1, 'type': 'proceeding'}]
-            
+
             result = await self.async_client.get_proceedings_by_type("test_type", anzahl=5)
             self.assertEqual(len(result), 1)
             self.assertEqual(result[0]['type'], 'proceeding')
@@ -126,7 +126,7 @@ class TestAsyncDipAnfrage(unittest.TestCase):
         """Test async get aktivitaet."""
         with patch.object(self.async_client, '_fetch_paginated_data', new_callable=AsyncMock) as mock_fetch:
             mock_fetch.return_value = [{'id': 1, 'type': 'aktivitaet'}]
-            
+
             result = await self.async_client.get_aktivitaet(anzahl=5)
             self.assertEqual(len(result), 1)
             self.assertEqual(result[0]['type'], 'aktivitaet')
@@ -135,7 +135,7 @@ class TestAsyncDipAnfrage(unittest.TestCase):
         """Test async get drucksache."""
         with patch.object(self.async_client, '_fetch_paginated_data', new_callable=AsyncMock) as mock_fetch:
             mock_fetch.return_value = [{'id': 1, 'type': 'drucksache'}]
-            
+
             result = await self.async_client.get_drucksache(anzahl=5)
             self.assertEqual(len(result), 1)
             self.assertEqual(result[0]['type'], 'drucksache')
@@ -144,7 +144,7 @@ class TestAsyncDipAnfrage(unittest.TestCase):
         """Test async get plenarprotokoll."""
         with patch.object(self.async_client, '_fetch_paginated_data', new_callable=AsyncMock) as mock_fetch:
             mock_fetch.return_value = [{'id': 1, 'type': 'plenarprotokoll'}]
-            
+
             result = await self.async_client.get_plenarprotokoll(anzahl=5)
             self.assertEqual(len(result), 1)
             self.assertEqual(result[0]['type'], 'plenarprotokoll')
@@ -153,7 +153,7 @@ class TestAsyncDipAnfrage(unittest.TestCase):
         """Test async get vorgang."""
         with patch.object(self.async_client, '_fetch_paginated_data', new_callable=AsyncMock) as mock_fetch:
             mock_fetch.return_value = [{'id': 1, 'type': 'vorgang'}]
-            
+
             result = await self.async_client.get_vorgang(anzahl=5)
             self.assertEqual(len(result), 1)
             self.assertEqual(result[0]['type'], 'vorgang')
@@ -162,7 +162,7 @@ class TestAsyncDipAnfrage(unittest.TestCase):
         """Test async get vorgangsposition."""
         with patch.object(self.async_client, '_fetch_paginated_data', new_callable=AsyncMock) as mock_fetch:
             mock_fetch.return_value = [{'id': 1, 'type': 'vorgangsposition'}]
-            
+
             result = await self.async_client.get_vorgangsposition(anzahl=5)
             self.assertEqual(len(result), 1)
             # The result is a list of Vorgangspositionbezug objects, not dicts
@@ -195,7 +195,7 @@ if __name__ == '__main__':
     # Create a test suite that can handle async tests
     loader = unittest.TestLoader()
     suite = loader.loadTestsFromTestCase(TestAsyncDipAnfrage)
-    
+
     # Run the tests
     runner = unittest.TextTestRunner()
-    runner.run(suite) 
+    runner.run(suite)

@@ -2,8 +2,8 @@
 Person parser for extracting structured data from person/member responses.
 """
 
-from typing import Any, Dict, List, Optional, Union
 from datetime import datetime
+from typing import Any, Dict, List, Optional, Union
 
 from .base_parser import BaseParser
 
@@ -19,7 +19,7 @@ class PersonParser(BaseParser):
     def __init__(self):
         """Initialize the person parser."""
         super().__init__()
-        
+
         # Role patterns
         self._role_patterns = {
             'president': r'präsident',
@@ -59,9 +59,9 @@ class PersonParser(BaseParser):
         """
         if not person:
             return {}
-            
+
         parsed = person.copy()
-        
+
         # Extract basic information
         parsed['parsed'] = {
             'basic_info': self._extract_basic_info(person),
@@ -73,7 +73,7 @@ class PersonParser(BaseParser):
             'constituency_info': self._extract_constituency_info(person),
             'dates': self._extract_dates(person),
         }
-        
+
         return parsed
 
     def _extract_basic_info(self, person: Dict[str, Any]) -> Dict[str, Any]:
@@ -110,7 +110,7 @@ class PersonParser(BaseParser):
             'party_history': [],
             'faction_role': '',
         }
-        
+
         # Extract from text content
         text = person.get('biografie', '') + ' ' + person.get('beschreibung', '')
         if text:
@@ -118,7 +118,7 @@ class PersonParser(BaseParser):
             parties = self.extract_parties(text)
             if parties:
                 party_info['mentioned_parties'] = parties
-                
+
         return party_info
 
     def _extract_committee_info(self, person: Dict[str, Any]) -> Dict[str, Any]:
@@ -136,7 +136,7 @@ class PersonParser(BaseParser):
             'committee_history': [],
             'committee_roles': [],
         }
-        
+
         # Extract from explicit committee fields
         if 'ausschuesse' in person:
             for committee in person['ausschuesse']:
@@ -149,14 +149,14 @@ class PersonParser(BaseParser):
                     })
                 elif isinstance(committee, str):
                     committee_info['current_committees'].append({'name': committee})
-                    
+
         # Extract from text content
         text = person.get('biografie', '') + ' ' + person.get('beschreibung', '')
         if text:
             committees = self.extract_committees(text)
             if committees:
                 committee_info['mentioned_committees'] = committees
-                
+
         return committee_info
 
     def _extract_role_info(self, person: Dict[str, Any]) -> Dict[str, Any]:
@@ -177,7 +177,7 @@ class PersonParser(BaseParser):
             'is_minister': False,
             'is_secretary': False,
         }
-        
+
         # Extract from explicit role fields
         if 'rollen' in person:
             for role in person['rollen']:
@@ -189,14 +189,14 @@ class PersonParser(BaseParser):
                     })
                 elif isinstance(role, str):
                     role_info['current_roles'].append({'name': role})
-                    
+
         # Extract from text content
         text = person.get('biografie', '') + ' ' + person.get('beschreibung', '')
         if text:
             for role_type, pattern in self._role_patterns.items():
                 if self.extract_text(text, pattern):
                     role_info[f'is_{role_type}'] = True
-                    
+
         return role_info
 
     def _extract_contact_info(self, person: Dict[str, Any]) -> Dict[str, Any]:
@@ -216,22 +216,22 @@ class PersonParser(BaseParser):
             'website': person.get('website', ''),
             'address': person.get('adresse', ''),
         }
-        
+
         # Extract from text content
         text = person.get('biografie', '') + ' ' + person.get('beschreibung', '')
         if text:
             emails = self.extract_emails(text)
             if emails:
                 contact_info['extracted_emails'] = emails
-                
+
             phones = self.extract_phone_numbers(text)
             if phones:
                 contact_info['extracted_phones'] = phones
-                
+
             links = self.extract_links(text)
             if links:
                 contact_info['extracted_links'] = links
-                
+
         return contact_info
 
     def _extract_biographical_info(self, person: Dict[str, Any]) -> Dict[str, Any]:
@@ -251,7 +251,7 @@ class PersonParser(BaseParser):
             'profession': person.get('beruf', ''),
             'biography': self.clean_text(person.get('biografie', '')),
         }
-        
+
         # Extract from text content
         text = person.get('biografie', '') + ' ' + person.get('beschreibung', '')
         if text:
@@ -259,7 +259,7 @@ class PersonParser(BaseParser):
             numbers = self.extract_numbers(text)
             if numbers:
                 bio_info['extracted_numbers'] = numbers
-                
+
         return bio_info
 
     def _extract_constituency_info(self, person: Dict[str, Any]) -> Dict[str, Any]:
@@ -278,7 +278,7 @@ class PersonParser(BaseParser):
             'list_position': person.get('listenplatz', ''),
             'election_type': person.get('wahlart', ''),
         }
-        
+
         return constituency_info
 
     def _extract_dates(self, person: Dict[str, Any]) -> Dict[str, Optional[datetime]]:
@@ -292,11 +292,11 @@ class PersonParser(BaseParser):
             Dictionary of date types and their values
         """
         dates = {}
-        
+
         # Extract from explicit date fields
         date_fields = ['geburtsdatum', 'eintrittsdatum', 'austrittsdatum', 'wahl_datum']
         for field in date_fields:
             if field in person:
                 dates[field] = self.parse_date(str(person[field]))
-                
-        return dates 
+
+        return dates
