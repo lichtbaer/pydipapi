@@ -3,7 +3,7 @@ Base client for API operations.
 """
 import logging
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import requests
 
@@ -39,12 +39,11 @@ class BaseApiClient:
 
         self.session = requests.Session()
         self.session.headers.update({
-            'Authorization': f'Bearer {api_key}',
             'Content-Type': 'application/json'
         })
 
     def _make_request(self, url: str, params: Optional[Dict[str, Any]] = None,
-                     use_cache: bool = True) -> requests.Response:
+                     use_cache: bool = True) -> Optional[requests.Response]:
         """
         Make an API request with rate limiting, retry logic, and optional caching.
 
@@ -59,10 +58,15 @@ class BaseApiClient:
         Raises:
             requests.HTTPError: If the request fails after all retries.
         """
+        logger.debug(f"Making request to URL: {url}")
+        logger.debug(f"Parameters: {params}")
+        logger.debug(f"Use cache: {use_cache}")
+
         # Check cache first if enabled
         if self.enable_cache and use_cache and self.cache:
             cached_data = self.cache.get(url, params)
             if cached_data:
+                logger.debug("Returning cached response")
                 # Create a mock response object with cached data
                 response = requests.Response()
                 response.status_code = 200
@@ -71,44 +75,82 @@ class BaseApiClient:
                 return response
 
         attempt = 0
+        response = None
 
         while attempt <= self.max_retries:
             try:
                 # Rate limiting delay
                 if attempt > 0:
-                    time.sleep(self.rate_limit_delay * attempt)  # Exponential backoff
+                    delay = self.rate_limit_delay * attempt
+                    logger.debug(f"Rate limiting delay: {delay}s (attempt {attempt})")
+                    time.sleep(delay)  # Exponential backoff
 
+                logger.debug(f"Making HTTP request (attempt {attempt + 1}/{self.max_retries + 1})")
                 response = self.session.get(url, params=params, timeout=30)
+                logger.debug(f"Response status: {response.status_code}")
+                logger.debug(f"Response headers: {dict(response.headers)}")
 
                 # Check for rate limiting
                 if is_rate_limited(response):
+                    logger.warning(f"Rate limited - status: {response.status_code}")
                     if attempt < self.max_retries:
                         retry_after = int(response.headers.get('Retry-After', 60))
+                        logger.info(f"Waiting {retry_after}s before retry")
                         time.sleep(retry_after)
                         attempt += 1
                         continue
 
                 # Handle other errors
-                handle_api_error(response)
+                try:
+                    handle_api_error(response)
+                except Exception as e:
+                    logger.error(f"handle_api_error failed: {e}")
+                    logger.error(f"Response status: {response.status_code}")
+                    logger.error(f"Response text: {response.text[:500]}...")
+
+                    # Provide specific guidance for common errors
+                    if response.status_code == 401:
+                        logger.error("Authentication failed. Please check your API key.")
+                        logger.error("You can get an API key from: https://dip.bundestag.de/über-dip/hilfe/api")
+                    elif response.status_code == 403:
+                        logger.error("Access forbidden. Your API key may not have the required permissions.")
+                    elif response.status_code == 429:
+                        logger.error("Rate limit exceeded. Please wait before making more requests.")
+
+                    raise e
 
                 # Cache successful responses
                 if self.enable_cache and use_cache and self.cache and response.status_code == 200:
+                    logger.debug("Caching successful response")
                     cache_data = {
                         'content': response.content,
                         'headers': dict(response.headers)
                     }
                     self.cache.set(url, cache_data, params)
 
+                logger.debug(f"Request successful - status: {response.status_code}")
                 return response
 
             except requests.RequestException as e:
-                if attempt < self.max_retries and should_retry(response, attempt, self.max_retries):
+                logger.error(f"RequestException on attempt {attempt + 1}: {e}")
+                if attempt < self.max_retries and response and should_retry(response, attempt, self.max_retries):
+                    logger.info(f"Retrying request (attempt {attempt + 1})")
+                    attempt += 1
+                    continue
+                raise e
+            except Exception as e:
+                logger.error(f"Unexpected exception on attempt {attempt + 1}: {e}")
+                if attempt < self.max_retries:
+                    logger.info(f"Retrying request (attempt {attempt + 1})")
                     attempt += 1
                     continue
                 raise e
 
         # If we get here, all retries failed
-        raise requests.HTTPError("Request failed after all retries")
+        logger.error("Request failed after all retries")
+        logger.error(f"URL: {url}")
+        logger.error(f"Params: {params}")
+        return None
 
     def _build_url(self, endpoint: str, **kwargs) -> str:
         """
@@ -139,45 +181,6 @@ class BaseApiClient:
                 url += "?" + "&".join(params)
 
         return url
-
-    def _fetch_paginated_data(self, endpoint: str, count: int, **params) -> List[Dict[str, Any]]:
-        """
-        Fetch paginated data from the API.
-
-        Args:
-            endpoint (str): The API endpoint.
-            count (int): Number of items to fetch.
-            **params: Additional parameters for the request.
-
-        Returns:
-            List[Dict[str, Any]]: List of documents.
-        """
-        documents = []
-        cursor = ""
-
-        while len(documents) < count:
-            # Add cursor to parameters if we have one
-            if cursor:
-                params['cursor'] = cursor
-
-            url = self._build_url(endpoint, **params)
-            response = self._make_request(url)
-            data = response.json()
-
-            if not data:
-                break
-
-            new_documents = data.get('documents', [])
-            documents.extend(new_documents)
-
-            # Update cursor for next page
-            cursor = data.get('cursor', '')
-
-            # If no more documents or no cursor, break
-            if not new_documents or not cursor:
-                break
-
-        return documents[:count]
 
     def _fetch_single_item(self, endpoint: str, item_id: int) -> Optional[Dict[str, Any]]:
         """

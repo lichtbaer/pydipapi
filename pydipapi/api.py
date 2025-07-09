@@ -1,13 +1,15 @@
 """
 Main API client for the German Bundestag API.
 """
-from typing import List, Optional
+import logging
+from typing import Any, Dict, List, Optional
 
 from pydantic import parse_obj_as
 
 from .client.base_client import BaseApiClient
 from .type import Vorgangspositionbezug
 
+logger = logging.getLogger(__name__)
 
 class DipAnfrage(BaseApiClient):
     """
@@ -35,18 +37,36 @@ class DipAnfrage(BaseApiClient):
         super().__init__(api_key, base_url, rate_limit_delay, max_retries, enable_cache, cache_ttl)
         self.documents = []
 
-    def _make_request(self, url: str) -> None:
+    def _make_request(self, url: str) -> Optional[dict]:
         """
-        Make a request and update the documents list.
+        Make a request and return the parsed JSON data.
 
         Args:
             url (str): The URL to request.
-        """
-        response = super()._make_request(url)
-        data = response.json()
 
-        if data:
-            self.documents.extend(data.get('documents', []))
+        Returns:
+            Optional[dict]: The parsed JSON response or None if failed.
+        """
+        logger.debug(f"Making request to: {url}")
+
+        response = super()._make_request(url)
+
+        if response is None:
+            logger.error(f"Request failed - no response received for URL: {url}")
+            return None
+
+        logger.debug(f"Response status: {response.status_code}")
+        logger.debug(f"Response headers: {dict(response.headers)}")
+
+        try:
+            data = response.json()
+            logger.debug(f"Response data keys: {list(data.keys()) if isinstance(data, dict) else 'Not a dict'}")
+            logger.debug(f"Documents count: {len(data.get('documents', []))}")
+            return data
+        except Exception as e:
+            logger.error(f"Failed to parse JSON response: {e}")
+            logger.error(f"Response content: {response.text[:500]}...")
+            return None
 
     def _build_url(self, endpoint: str, **kwargs) -> str:
         """
@@ -75,9 +95,12 @@ class DipAnfrage(BaseApiClient):
             List[dict]: A list of person dictionaries.
         """
         try:
+            logger.info(f"Fetching {anzahl} persons with filters: {filters}")
             result = self._fetch_paginated_data('person', anzahl, **filters)
+            logger.info(f"Retrieved {len(result)} persons")
             return result or []
-        except Exception:
+        except Exception as e:
+            logger.error(f"Error fetching persons: {e}")
             return []
 
     def get_person_ids(self, ids: List[int]) -> List[dict]:
@@ -90,9 +113,13 @@ class DipAnfrage(BaseApiClient):
         Returns:
             List[dict]: A list of person dictionaries.
         """
+        logger.info(f"Fetching persons by IDs: {ids}")
         self.documents = []
         url = self._build_url("person", f_id=ids)
-        self._make_request(url)
+        data = self._make_request(url)
+        if data:
+            self.documents = data.get('documents', [])
+        logger.info(f"Retrieved {len(self.documents)} persons")
         return self.documents
 
     def get_aktivitaet_ids(self, ids: List[int]) -> List[dict]:
@@ -105,9 +132,13 @@ class DipAnfrage(BaseApiClient):
         Returns:
             List[dict]: A list of activity dictionaries.
         """
+        logger.info(f"Fetching activities by IDs: {ids}")
         self.documents = []
         url = self._build_url("aktivitaet", f_id=ids)
-        self._make_request(url)
+        data = self._make_request(url)
+        if data:
+            self.documents = data.get('documents', [])
+        logger.info(f"Retrieved {len(self.documents)} activities")
         return self.documents
 
     def get_drucksache_ids(self, ids: List[int], text: bool = True) -> List[dict]:
@@ -121,10 +152,14 @@ class DipAnfrage(BaseApiClient):
         Returns:
             List[dict]: A list of document dictionaries.
         """
+        logger.info(f"Fetching documents by IDs: {ids}, text={text}")
         self.documents = []
         endpoint = 'drucksache-text' if text else 'drucksache'
         url = self._build_url(endpoint, f_id=ids)
-        self._make_request(url)
+        data = self._make_request(url)
+        if data:
+            self.documents = data.get('documents', [])
+        logger.info(f"Retrieved {len(self.documents)} documents")
         return self.documents
 
     def get_plenarprotokoll_ids(self, ids: List[int], text: bool = True) -> List[dict]:
@@ -138,10 +173,14 @@ class DipAnfrage(BaseApiClient):
         Returns:
             List[dict]: A list of protocol dictionaries.
         """
+        logger.info(f"Fetching plenary protocols by IDs: {ids}, text={text}")
         self.documents = []
         endpoint = 'plenarprotokoll-text' if text else 'plenarprotokoll'
         url = self._build_url(endpoint, f_id=ids)
-        self._make_request(url)
+        data = self._make_request(url)
+        if data:
+            self.documents = data.get('documents', [])
+        logger.info(f"Retrieved {len(self.documents)} plenary protocols")
         return self.documents
 
     def get_vorgang_ids(self, ids: List[int]) -> List[dict]:
@@ -154,9 +193,13 @@ class DipAnfrage(BaseApiClient):
         Returns:
             List[dict]: A list of proceeding dictionaries.
         """
+        logger.info(f"Fetching proceedings by IDs: {ids}")
         self.documents = []
         url = self._build_url("vorgang", f_id=ids)
-        self._make_request(url)
+        data = self._make_request(url)
+        if data:
+            self.documents = data.get('documents', [])
+        logger.info(f"Retrieved {len(self.documents)} proceedings")
         return self.documents
 
     def get_vorgangsposition_ids(self, ids: List[int]) -> List[dict]:
@@ -169,9 +212,13 @@ class DipAnfrage(BaseApiClient):
         Returns:
             List[dict]: A list of proceeding position dictionaries.
         """
+        logger.info(f"Fetching proceeding positions by IDs: {ids}")
         self.documents = []
         url = self._build_url("vorgangsposition", f_id=ids)
-        self._make_request(url)
+        data = self._make_request(url)
+        if data:
+            self.documents = data.get('documents', [])
+        logger.info(f"Retrieved {len(self.documents)} proceeding positions")
         return self.documents
 
     def search_documents(self, query: str, anzahl: int = 10, **filters) -> List[dict]:
@@ -186,10 +233,14 @@ class DipAnfrage(BaseApiClient):
         Returns:
             List[dict]: List of matching documents.
         """
+        logger.info(f"Searching documents with query: '{query}', count: {anzahl}, filters: {filters}")
         self.documents = []
         filters['q'] = query
         url = self._build_url("drucksache", anzahl=anzahl, **filters)
-        self._make_request(url)
+        data = self._make_request(url)
+        if data:
+            self.documents = data.get('documents', [])
+        logger.info(f"Retrieved {len(self.documents)} documents from search")
         return self.documents
 
     def get_recent_activities(self, days: int = 7, anzahl: int = 20) -> List[dict]:
@@ -203,16 +254,19 @@ class DipAnfrage(BaseApiClient):
         Returns:
             List[dict]: List of recent activities.
         """
+        logger.info(f"Fetching recent activities from last {days} days, count: {anzahl}")
         from datetime import datetime, timedelta
 
         end_date = datetime.now()
         start_date = end_date - timedelta(days=days)
 
-        result = self.get_aktivitaet(
-            anzahl=anzahl,
-            datum_start=start_date.strftime("%Y-%m-%d"),
-            datum_end=end_date.strftime("%Y-%m-%d")
-        )
+        filters = {
+            'aktualisiert_start': start_date.strftime('%Y-%m-%dT%H:%M:%S'),
+            'aktualisiert_end': end_date.strftime('%Y-%m-%dT%H:%M:%S')
+        }
+
+        result = self._fetch_paginated_data('aktivitaet', anzahl, **filters)
+        logger.info(f"Retrieved {len(result)} recent activities")
         return result or []
 
     def get_person_by_name(self, name: str, anzahl: int = 10) -> List[dict]:
@@ -350,6 +404,58 @@ class DipAnfrage(BaseApiClient):
         """
         documents = self._fetch_paginated_data('vorgangsposition', anzahl, **filters)
         return parse_obj_as(List[Vorgangspositionbezug], documents)
+
+    def _fetch_paginated_data(self, endpoint: str, count: int, **params) -> List[Dict[str, Any]]:
+        """
+        Fetch paginated data from the API.
+
+        Args:
+            endpoint (str): The API endpoint.
+            count (int): Number of items to fetch.
+            **params: Additional parameters for the request.
+
+        Returns:
+            List[Dict[str, Any]]: List of documents.
+        """
+        logger.debug(f"Fetching paginated data from endpoint: {endpoint}, count: {count}, params: {params}")
+        documents = []
+        cursor = ""
+
+        while len(documents) < count:
+            # Add cursor to parameters if we have one
+            if cursor:
+                params['cursor'] = cursor
+
+            url = self._build_url(endpoint, **params)
+            logger.debug(f"Making request to URL: {url}")
+
+            data = self._make_request(url)
+            if data is None:
+                logger.error("No response received from _make_request")
+                break
+
+            logger.debug(f"Response data type: {type(data)}")
+            logger.debug(f"Response data keys: {list(data.keys()) if isinstance(data, dict) else 'Not a dict'}")
+
+            if not data:
+                logger.warning("Empty response data")
+                break
+
+            new_documents = data.get('documents', []) if isinstance(data, dict) else []
+            logger.debug(f"Retrieved {len(new_documents)} new documents")
+            documents.extend(new_documents)
+
+            # Update cursor for next page
+            cursor = data.get('cursor', '') if isinstance(data, dict) else ''
+            logger.debug(f"Next cursor: {cursor}")
+
+            # If no more documents or no cursor, break
+            if not new_documents or not cursor:
+                logger.debug("No more documents or no cursor, stopping pagination")
+                break
+
+        logger.info(f"Total documents retrieved: {len(documents)}")
+        return documents[:count]
 
     def get_aktivitaet_by_id(self, id: int) -> Optional[dict]:
         """

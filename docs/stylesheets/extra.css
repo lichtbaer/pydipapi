@@ -1,0 +1,149 @@
+/* Custom styles for pydipapi documentation */
+
+/* Code block styling */
+.md-typeset code {
+    background-color: #f5f5f5;
+    border-radius: 3px;
+    padding: 2px 4px;
+    font-size: 0.85em;
+}
+
+/* Table styling */
+.md-typeset table {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.md-typeset table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    border-bottom: 2px solid #e9ecef;
+}
+
+/* Button styling */
+.md-button {
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.md-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Feature cards */
+.feature-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin: 1rem 0;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+}
+
+.feature-card h3 {
+    color: white;
+    margin-top: 0;
+}
+
+/* API endpoint styling */
+.api-endpoint {
+    background-color: #f8f9fa;
+    border-left: 4px solid #007bff;
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 0 8px 8px 0;
+}
+
+.api-endpoint .method {
+    font-weight: bold;
+    color: #007bff;
+}
+
+/* Code example styling */
+.code-example {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.code-example pre {
+    margin: 0;
+    background: transparent;
+}
+
+/* Warning and info boxes */
+.warning-box {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.info-box {
+    background-color: #d1ecf1;
+    border: 1px solid #bee5eb;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+/* Navigation improvements */
+.md-nav__link {
+    transition: color 0.2s ease;
+}
+
+.md-nav__link:hover {
+    color: #007bff;
+}
+
+/* Search improvements */
+.md-search__input {
+    border-radius: 20px;
+}
+
+/* Footer styling */
+.md-footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .feature-card {
+        padding: 1rem;
+    }
+    
+    .api-endpoint {
+        padding: 0.75rem;
+    }
+}
+
+/* Dark mode adjustments */
+[data-md-color-scheme="slate"] .feature-card {
+    background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+}
+
+[data-md-color-scheme="slate"] .api-endpoint {
+    background-color: #2d3748;
+    border-left-color: #63b3ed;
+}
+
+[data-md-color-scheme="slate"] .code-example {
+    background-color: #2d3748;
+    border-color: #4a5568;
+}
+
+/* Print styles */
+@media print {
+    .feature-card,
+    .api-endpoint,
+    .code-example {
+        break-inside: avoid;
+    }
+} 
