@@ -1,4 +1,4 @@
-# Projekt-Status: pydipapi
+# Roadmap & Projekt-Status
 
 **Datum**: Juli 2024  
 **Version**: 0.1.0 (Beta)  
@@ -6,7 +6,7 @@
 
 ## 📊 Aktueller Zustand
 
-### ✅ Vollständig implementiert
+### ✅ Vollständig implementiert (0.1.0)
 
 #### Core-Funktionalität
 - **Vollständige API-Abdeckung** - Alle Bundestag API-Endpunkte
@@ -37,42 +37,21 @@
 - **Entwickler-Guide**: Erweiterte Nutzung und Entwicklung
 - **Testing Guide**: Umfassende Test-Dokumentation
 
-### ⚠️ Aktuelle Probleme
+### 📈 Aktuelle Metriken
 
-#### Test-Failures (Behoben)
-- ~~Rate Limiting Test - Mocking kann keine echten Delays testen~~
-- ~~Cache-Serialization mit MagicMock-Objekten~~
-- ~~URL-Building Edge Cases~~
+#### Code-Qualität
+- **Linting**: Ruff und Bandit konfiguriert ✅
+- **Security**: Bandit-Clean ✅
+- **Type Hints**: Teilweise implementiert ⚠️
+- **Docstrings**: Vollständig ✅
 
-#### Coverage-Lücken
-- **api.py**: 63% Coverage (Ziel: >95%)
-- **cache.py**: 77% Coverage (Ziel: >95%)
-- **base_client.py**: 83% Coverage (Ziel: >95%)
+#### Test-Coverage
+- **Gesamt**: 86% (Ziel: >95%)
+- **Unit Tests**: 37 Tests ✅
+- **Integration Tests**: 21 Tests ✅
+- **Error-Handling**: Vollständig getestet ✅
 
-#### Versionierung
-- ~~README zeigte 1.0.0, pyproject.toml 0.1.0~~ (Behoben)
-
-## 🧪 Test-Strategie
-
-### Test-Typen
-
-1. **Unit Tests** (`test_api.py`)
-   - 12 Tests für API-Methoden
-   - Mock-basierte Tests
-   - Error-Handling Tests
-
-2. **Coverage Tests** (`test_coverage.py`)
-   - 25 Tests für Edge Cases
-   - Error-Szenarien
-   - Cache-Funktionalität
-
-3. **Integration Tests** (`test_integration.py`)
-   - 21 Tests gegen echte API
-   - Erfordern API-Key
-   - Rate-Limiting Tests
-
-### Coverage-Analyse
-
+#### Coverage-Analyse
 ```
 Name                             Stmts   Miss  Cover
 ----------------------------------------------------
@@ -89,25 +68,7 @@ tests/test_coverage.py             210      1    99%
 TOTAL                              796    113    86%
 ```
 
-## 📚 Dokumentation
-
-### Vollständige Dokumentation
-- **README.md**: Projekt-Übersicht und Schnellstart
-- **docs/index.md**: Hauptseite der Dokumentation
-- **docs/usage.md**: Grundlegende Verwendung
-- **docs/api_reference.md**: Vollständige API-Referenz
-- **docs/testing.md**: Test-Strategie und Coverage
-- **docs/developer_guide.md**: Erweiterte Entwicklung
-- **docs/changelog.md**: Versionshistorie
-
-### Dokumentations-Features
-- **Responsive Design**: Material Theme
-- **Code-Highlighting**: Syntax-Highlighting für Python
-- **Search**: Volltext-Suche
-- **Navigation**: Erweiterte Navigation
-- **GitHub Integration**: Edit-Links zu GitHub
-
-## 🚀 Nächste Schritte
+## 🚀 Roadmap zu 1.0.0
 
 ### Phase 1: Sofortige Verbesserungen (1-2 Wochen)
 
@@ -238,33 +199,60 @@ class DataExporter:
 - Documentation deployment
 ```
 
-## 📈 Metriken
+## 📄 Content Parser - Technische Details
 
-### Code-Qualität
-- **Linting**: Ruff und Bandit konfiguriert ✅
-- **Security**: Bandit-Clean ✅
-- **Type Hints**: Teilweise implementiert ⚠️
-- **Docstrings**: Vollständig ✅
+### Parser-Architektur
 
-### Test-Coverage
-- **Gesamt**: 86% (Ziel: >95%)
-- **Unit Tests**: 37 Tests ✅
-- **Integration Tests**: 21 Tests ✅
-- **Error-Handling**: Vollständig getestet ✅
+#### Drucksachen-Parser
+- PDF-Extraktion mit `pdfplumber` oder `PyMuPDF`
+- HTML-Parser für Online-Versionen
+- Strukturerkennung (Titel, Inhalt, Anlagen)
+- Metadaten-Extraktion (Autor, Datum, Typ)
 
-### Dokumentation
-- **API-Referenz**: Vollständig ✅
-- **Beispiele**: Umfassend ✅
-- **Entwickler-Guide**: Vollständig ✅
-- **Testing Guide**: Neu erstellt ✅
+#### Plenarprotokolle-Parser
+- Redebeitrags-Segmentierung
+- Sprecher-Identifikation
+- Abstimmungsergebnisse-Extraktion
+- Zwischenrufe und Reaktionen
 
-### CI/CD
-- **GitHub Actions**: Konfiguriert ✅
-- **Pre-commit Hooks**: Aktiv ✅
-- **Automated Testing**: Implementiert ✅
-- **Documentation Deployment**: Konfiguriert ✅
+#### Vorgänge/Vorgangspositionen-Parser
+- Workflow-Timeline-Extraktion
+- Status-Tracking
+- Beziehungen zwischen Dokumenten
+- Gesetzgebungsverfahren-Mapping
 
-## 🎯 Release-Ziele
+### Technische Dependencies
+- `pdfplumber` - PDF-Text-Extraktion
+- `beautifulsoup4` - HTML-Parsing
+- `spacy` - NLP-Pipeline (optional)
+- `pandas` - Datenstrukturierung
+- `dateutil` - Datums-Parsing
+
+## 🧪 Testing-Strategie
+
+### Test-Kategorien
+1. **Unit Tests** - Einzelne Funktionen/Methoden
+2. **Integration Tests** - API-Interaktion
+3. **Performance Tests** - Batch-Operationen, Cache-Performance
+4. **Security Tests** - Input-Validation, API-Key-Handling
+5. **Compatibility Tests** - Python-Versionen, Dependencies
+6. **Parser Tests** - Dokument-Parsing-Genauigkeit
+
+### Test-Environment
+- **Mock-Server** für Offline-Tests
+- **Test-API-Keys** für Integration Tests
+- **Performance-Benchmarks** für Regression-Tests
+
+## 📊 Qualitätsziele für 1.0.0
+
+- **Code Coverage**: >95%
+- **Performance**: <500ms für Standardabfragen
+- **Batch Operations**: >100 req/min mit Rate Limiting
+- **Cache Hit Rate**: >80% bei typischer Nutzung
+- **Documentation**: Vollständige API-Dokumentation
+- **Security**: Bandit-Clean, keine bekannten Vulnerabilities
+
+## 🎯 Release-Plan
 
 ### Version 0.2.0 (Nächste Beta)
 - [ ] Coverage auf >95% erhöhen
@@ -309,6 +297,35 @@ class DataExporter:
 2. **Analytics** - Usage-Tracking
 3. **Plugin-System** - Erweiterbare Architektur
 4. **Multi-Language Support** - Internationalisierung
+
+## 🐛 Bekannte Probleme & Limitierungen
+
+### Aktuell bekannte Issues
+- [ ] Cache-Serialization für komplexe Objekte
+- [ ] Rate-Limiting-Granularität verbessern
+- [ ] Memory-Usage bei großen Batch-Operationen
+
+### API-Limitierungen
+- Bundestag API Rate Limits (zu dokumentieren)
+- Maximale Request-Size
+- Timeout-Verhalten
+
+## 📝 Breaking Changes für 1.0.0
+
+Geplante Breaking Changes (falls notwendig):
+- [ ] API-Methoden-Namenskonventionen standardisieren
+- [ ] Error-Handling-Interface vereinheitlichen
+- [ ] Configuration-Format standardisieren
+
+## 🤝 Beiträge
+
+Bereiche wo Beiträge besonders willkommen sind:
+- Testing (Unit/Integration Tests)
+- Dokumentation und Beispiele
+- Performance-Optimierungen
+- Content-Parser für Bundestag-Dokumente
+- NLP/Text-Analysis-Features
+- Feature-Requests und Bug-Reports
 
 ## 📞 Support & Community
 

@@ -139,7 +139,8 @@ nav:
   - Development:
     - Testing Guide: testing.md
     - Entwickler-Guide: developer_guide.md
-  - About:
+  - Project:
+    - Roadmap & Status: roadmap.md
     - Changelog: changelog.md
 
 extra_css:
