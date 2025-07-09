@@ -395,8 +395,12 @@ class DipAnfrage(BaseApiClient):
         Returns:
             List[dict]: A list of protocol dictionaries.
         """
-        endpoint = 'plenarprotokoll-text' if text else 'plenarprotokoll'
-        return self._fetch_paginated_data(endpoint, anzahl, **filters)
+        try:
+            endpoint = 'plenarprotokoll-text' if text else 'plenarprotokoll'
+            result = self._fetch_paginated_data(endpoint, anzahl, **filters)
+            return result or []
+        except Exception:
+            return []
 
     def get_vorgang(self, anzahl: int = 10, **filters) -> List[dict]:
         """
@@ -409,7 +413,11 @@ class DipAnfrage(BaseApiClient):
         Returns:
             List[dict]: A list of proceedings.
         """
-        return self._fetch_paginated_data('vorgang', anzahl, **filters)
+        try:
+            result = self._fetch_paginated_data('vorgang', anzahl, **filters)
+            return result or []
+        except Exception:
+            return []
 
     def get_vorgangsposition(self, anzahl: int = 10, **filters) -> List[Vorgangspositionbezug]:
         """
@@ -422,8 +430,11 @@ class DipAnfrage(BaseApiClient):
         Returns:
             List[Vorgangspositionbezug]: A list of proceeding positions.
         """
-        documents = self._fetch_paginated_data('vorgangsposition', anzahl, **filters)
-        return parse_obj_as(List[Vorgangspositionbezug], documents)
+        try:
+            documents = self._fetch_paginated_data('vorgangsposition', anzahl, **filters)
+            return parse_obj_as(List[Vorgangspositionbezug], documents)
+        except Exception:
+            return []
 
     def _fetch_paginated_data(self, endpoint: str, count: int, **params) -> List[Dict[str, Any]]:
         """

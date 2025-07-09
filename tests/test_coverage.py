@@ -5,11 +5,12 @@ These tests focus on edge cases and improving code coverage.
 """
 
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, mock_open, patch
 
 import requests
 
 from pydipapi import DipAnfrage
+from pydipapi.util.cache import SimpleCache
 
 
 class TestCoverage(unittest.TestCase):
@@ -364,6 +365,294 @@ class TestCoverage(unittest.TestCase):
 
                 # Should have logged debug info
                 mock_logger.debug.assert_called()
+
+    def test_cache_error_handling(self):
+        """Test cache error handling."""
+        cache = SimpleCache(cache_dir="test_cache", ttl=3600)
+
+        # Test cache key generation with complex params
+        complex_params = {"list": [1, 2, 3], "dict": {"nested": "value"}}
+        cache_key = cache._get_cache_key("test_url", complex_params)
+        self.assertIsInstance(cache_key, str)
+        self.assertEqual(len(cache_key), 64)  # SHA256 hex length
+
+        # Test cache with simple data
+        cache.set("test_url", {"data": "test"})
+        result = cache.get("test_url")
+        self.assertEqual(result, {"data": "test"})
+
+    def test_api_convenience_methods_edge_cases(self):
+        """Test edge cases in convenience methods."""
+        # Test get_person with exception
+        with patch.object(self.dip, '_fetch_paginated_data', side_effect=Exception("API Error")):
+            result = self.dip.get_person(anzahl=10)
+            self.assertEqual(result, [])
+
+        # Test get_aktivitaet with exception
+        with patch.object(self.dip, '_fetch_paginated_data', side_effect=Exception("API Error")):
+            result = self.dip.get_aktivitaet(anzahl=10)
+            self.assertEqual(result, [])
+
+        # Test get_drucksache with exception
+        with patch.object(self.dip, '_fetch_paginated_data', side_effect=Exception("API Error")):
+            result = self.dip.get_drucksache(anzahl=10)
+            self.assertEqual(result, [])
+
+        # Test get_plenarprotokoll with exception
+        with patch.object(self.dip, '_fetch_paginated_data', side_effect=Exception("API Error")):
+            result = self.dip.get_plenarprotokoll(anzahl=10)
+            self.assertEqual(result, [])
+
+        # Test get_vorgang with exception
+        with patch.object(self.dip, '_fetch_paginated_data', side_effect=Exception("API Error")):
+            result = self.dip.get_vorgang(anzahl=10)
+            self.assertEqual(result, [])
+
+        # Test get_vorgangsposition with exception
+        with patch.object(self.dip, '_fetch_paginated_data', side_effect=Exception("API Error")):
+            result = self.dip.get_vorgangsposition(anzahl=10)
+            self.assertEqual(result, [])
+
+    def test_api_single_item_methods(self):
+        """Test single item retrieval methods."""
+        # Test _fetch_single_item with no data
+        with patch.object(self.dip, '_make_request', return_value=None):
+            result = self.dip._fetch_single_item('person', 123)
+            self.assertIsNone(result)
+
+        # Test _fetch_single_item with empty documents
+        with patch.object(self.dip, '_make_request', return_value={'documents': []}):
+            result = self.dip._fetch_single_item('person', 123)
+            self.assertIsNone(result)
+
+        # Test _fetch_single_item with valid data
+        with patch.object(self.dip, '_make_request', return_value={'documents': [{'id': 123}]}):
+            result = self.dip._fetch_single_item('person', 123)
+            self.assertEqual(result, {'id': 123})
+
+    def test_api_build_url(self):
+        """Test URL building with API key."""
+        url = self.dip._build_url('person', wahlperiode=20)
+        self.assertIn('apikey=test_key', url)
+        self.assertIn('wahlperiode=20', url)
+
+    def test_error_handler_edge_cases(self):
+        """Test error handler edge cases."""
+        # Test error handler with mock response
+        from unittest.mock import Mock
+        mock_response = Mock()
+        mock_response.status_code = 500
+        mock_response.text = "Internal Server Error"
+        mock_response.reason = "Internal Server Error"
+
+        from pydipapi.util.error_handler import handle_api_error
+        with self.assertRaises(requests.HTTPError):
+            handle_api_error(mock_response)
+
+    def test_cache_serialization_edge_cases(self):
+        """Test cache serialization edge cases."""
+        cache = SimpleCache(cache_dir="test_cache", ttl=3600)
+
+        # Test with non-serializable data
+        non_serializable_data = {"data": "test"}
+        cache.set("test_url", non_serializable_data)
+
+        # Test cache key generation with complex params
+        complex_params = {"list": [1, 2, 3], "dict": {"nested": "value"}}
+        cache_key = cache._get_cache_key("test_url", complex_params)
+        self.assertIsInstance(cache_key, str)
+        self.assertEqual(len(cache_key), 64)  # SHA256 hex length
+
+    def test_error_handling_module(self):
+        """Test the error_handling module."""
+        from pydipapi.util.error_handling import (
+            DipApiConnectionError,
+            DipApiError,
+            DipApiHttpError,
+            handle_api_response,
+            validate_api_key,
+        )
+
+        # Test DipApiError
+        error = DipApiError("Test error")
+        self.assertEqual(str(error), "Test error")
+
+        # Test DipApiHttpError
+        http_error = DipApiHttpError(404, "Not found")
+        self.assertEqual(http_error.status_code, 404)
+        self.assertEqual(http_error.message, "Not found")
+        self.assertEqual(str(http_error), "HTTP 404: Not found")
+
+        # Test DipApiConnectionError
+        conn_error = DipApiConnectionError("Connection failed")
+        self.assertEqual(str(conn_error), "Connection failed")
+
+        # Test validate_api_key with valid key
+        valid_key = validate_api_key("test_key")
+        self.assertEqual(valid_key, "test_key")
+
+        # Test validate_api_key with None
+        with self.assertRaises(ValueError):
+            validate_api_key(None)
+
+        # Test validate_api_key with empty string
+        with self.assertRaises(ValueError):
+            validate_api_key("")
+
+        # Test handle_api_response with successful response
+        mock_response = MagicMock()
+        mock_response.json.return_value = {"data": "test"}
+        mock_response.raise_for_status.return_value = None
+
+        result = handle_api_response(mock_response)
+        self.assertEqual(result, {"data": "test"})
+
+        # Test handle_api_response with HTTP error
+        mock_response = MagicMock()
+        mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError("404 Not Found")
+        mock_response.status_code = 404
+
+        with self.assertRaises(DipApiHttpError):
+            handle_api_response(mock_response)
+
+        # Test handle_api_response with connection error
+        mock_response = MagicMock()
+        mock_response.raise_for_status.side_effect = requests.exceptions.ConnectionError("Connection failed")
+
+        with self.assertRaises(DipApiConnectionError):
+            handle_api_response(mock_response)
+
+        # Test handle_api_response with request exception
+        mock_response = MagicMock()
+        mock_response.raise_for_status.side_effect = requests.exceptions.RequestException("Request failed")
+
+        with self.assertRaises(DipApiConnectionError):
+            handle_api_response(mock_response)
+
+        # Test handle_api_response with unexpected exception
+        mock_response = MagicMock()
+        mock_response.raise_for_status.side_effect = Exception("Unexpected error")
+
+        with self.assertRaises(DipApiError):
+            handle_api_response(mock_response)
+
+    def test_cache_exception_handling(self):
+        """Test cache exception handling."""
+        cache = SimpleCache(cache_dir="test_cache", ttl=3600)
+
+        # Test cache set with write error
+        with patch('builtins.open', side_effect=Exception("Write error")):
+            cache.set("test_url", {"data": "test"})
+            # Should not raise exception
+
+        # Test cache clear with delete error
+        with patch('pathlib.Path.glob') as mock_glob:
+            mock_file = MagicMock()
+            mock_file.unlink.side_effect = Exception("Delete error")
+            mock_glob.return_value = [mock_file]
+
+            cache.clear()
+            # Should not raise exception
+
+        # Test cache clear_expired with read error
+        with patch('pathlib.Path.glob') as mock_glob:
+            mock_file = MagicMock()
+            mock_file.unlink.return_value = None
+            mock_glob.return_value = [mock_file]
+
+            with patch('builtins.open', side_effect=Exception("Read error")):
+                cache.clear_expired()
+                # Should not raise exception
+
+        # Test cache clear_expired with invalid JSON
+        with patch('pathlib.Path.glob') as mock_glob:
+            mock_file = MagicMock()
+            mock_file.unlink.return_value = None
+            mock_glob.return_value = [mock_file]
+
+            with patch('builtins.open', mock_open(read_data="invalid json")):
+                cache.clear_expired()
+                # Should not raise exception
+
+    def test_error_handler_missing_lines(self):
+        """Test error handler missing lines."""
+        from pydipapi.util.error_handler import (
+            handle_api_error,
+            is_rate_limited,
+            should_retry,
+        )
+
+        # Test handle_api_error with ValueError (invalid JSON)
+        mock_response = MagicMock()
+        mock_response.status_code = 400
+        mock_response.reason = "Bad Request"
+        mock_response.json.side_effect = ValueError("Invalid JSON")
+
+        with self.assertRaises(requests.HTTPError):
+            handle_api_error(mock_response)
+
+        # Test is_rate_limited
+        mock_response = MagicMock()
+        mock_response.status_code = 429
+        self.assertTrue(is_rate_limited(mock_response))
+
+        mock_response.status_code = 200
+        self.assertFalse(is_rate_limited(mock_response))
+
+        # Test should_retry with max retries reached
+        mock_response = MagicMock()
+        mock_response.status_code = 500
+        self.assertFalse(should_retry(mock_response, 3, 3))
+
+        # Test should_retry with server error
+        self.assertTrue(should_retry(mock_response, 1, 3))
+
+        # Test should_retry with rate limit
+        mock_response.status_code = 429
+        self.assertTrue(should_retry(mock_response, 1, 3))
+
+        # Test should_retry with client error
+        mock_response.status_code = 400
+        self.assertFalse(should_retry(mock_response, 1, 3))
+
+    def test_base_client_missing_lines(self):
+        """Test base client missing lines."""
+        from pydipapi.client.base_client import BaseApiClient
+
+        # Create a client
+        client = BaseApiClient(api_key='test', base_url='https://test.com')
+
+        # Test _build_url with list parameters
+        url = client._build_url('test', f_id=[1, 2, 3])
+        self.assertIn('f_id=1', url)
+        self.assertIn('f_id=2', url)
+        self.assertIn('f_id=3', url)
+
+        # Test _build_url with None values
+        url = client._build_url('test', param1=None, param2='value')
+        self.assertNotIn('param1', url)
+        self.assertIn('param2=value', url)
+
+        # Test _fetch_single_item with no documents
+        with patch.object(client, '_make_request', return_value=None):
+            result = client._fetch_single_item('test', 1)
+            self.assertIsNone(result)
+
+        # Test _fetch_single_item with empty documents
+        mock_response = MagicMock()
+        mock_response.json.return_value = {'documents': []}
+
+        with patch.object(client, '_make_request', return_value=mock_response):
+            result = client._fetch_single_item('test', 1)
+            self.assertIsNone(result)
+
+        # Test _fetch_single_item with valid documents
+        mock_response = MagicMock()
+        mock_response.json.return_value = {'documents': [{'id': 1}]}
+
+        with patch.object(client, '_make_request', return_value=mock_response):
+            result = client._fetch_single_item('test', 1)
+            self.assertEqual(result, {'id': 1})
 
 
 if __name__ == '__main__':
