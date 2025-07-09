@@ -1,0 +1,38 @@
+# Include the README
+include README.md
+
+# Include the license
+include LICENSE
+
+# Include the package metadata
+include pydipapi/py.typed
+
+# Include OpenAPI spec if needed
+include pydipapi/*.yaml
+include pydipapi/*.yml
+
+# Include requirements files
+include requirements.txt
+
+# Include configuration files
+include pyproject.toml
+
+# Exclude development files
+exclude setup.py
+prune tests
+prune examples
+prune docs
+prune notebooks
+prune .github
+prune .ruff_cache
+prune .pytest_cache
+prune __pycache__
+prune *.egg-info
+
+# Exclude other unwanted files
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *.pyd
+global-exclude .DS_Store
+global-exclude *.so
+global-exclude .git* 

@@ -4,28 +4,101 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pydipapi"
-version = "0.0.2"
-description = "Python client for the German Bundestag API"
+version = "0.1.0"
+description = "Modern Python client for the German Bundestag API with batch operations, caching, and performance optimization"
 readme = "README.md"
-requires-python = ">=3.7"
+license = "MIT"
+requires-python = ">=3.8"
+authors = [
+    {name = "Johannes Gegenheimer", email = "jg@politikpraxis.de"},
+]
+maintainers = [
+    {name = "Johannes Gegenheimer", email = "jg@politikpraxis.de"},
+]
+keywords = [
+    "bundestag", 
+    "api", 
+    "parliament", 
+    "politics", 
+    "germany", 
+    "government",
+    "data",
+    "political-science"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Education",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Sociology",
+]
 dependencies = [
-    "requests",
-    "pydantic",
+    "requests>=2.25.0",
+    "pydantic>=1.8.0",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest",
-    "ruff",
-    "bandit",
-    "mkdocs",
-    "mkdocs-material",
-    "mkdocstrings[python]",
+    "pytest>=6.0",
+    "ruff>=0.4.0",
+    "bandit>=1.7.0",
+    "mkdocs>=1.5.0",
+    "mkdocs-material>=9.0.0",
+    "mkdocstrings[python]>=0.20.0",
+    "pre-commit>=3.0.0",
+    "jupyter>=1.0.0",
+    "jupyterlab>=3.0.0",
+]
+docs = [
+    "mkdocs>=1.5.0",
+    "mkdocs-material>=9.0.0",
+    "mkdocstrings[python]>=0.20.0",
+]
+notebooks = [
+    "jupyter>=1.0.0",
+    "jupyterlab>=3.0.0",
 ]
 
+[project.urls]
+Homepage = "https://github.com/lichtbaer/pydipapi"
+Documentation = "https://lichtbaer.github.io/pydipapi/"
+Repository = "https://github.com/lichtbaer/pydipapi.git"
+"Bug Tracker" = "https://github.com/lichtbaer/pydipapi/issues"
+Changelog = "https://lichtbaer.github.io/pydipapi/changelog/"
+"API Reference" = "https://lichtbaer.github.io/pydipapi/api_reference/"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["pydipapi*"]
+exclude = ["tests*", "examples*", "docs*", "notebooks*"]
+
+[tool.setuptools.package-data]
+pydipapi = ["*.yaml", "*.yml", "py.typed"]
+
 [tool.ruff]
-target-version = "py37"
+target-version = "py38"
 line-length = 88
+exclude = [
+    ".git",
+    ".ruff_cache",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "docs",
+    "notebooks",
+    "site",
+]
 
 [tool.ruff.lint]
 select = [
@@ -36,19 +109,23 @@ select = [
     "B",  # flake8-bugbear
     "C4", # flake8-comprehensions
     "UP", # pyupgrade
+    "S",  # bandit
 ]
 ignore = [
-    "E501",  # line too long, handled by black
+    "E501",  # line too long, handled by formatter
     "B008",  # do not perform function calls in argument defaults
     "C901",  # too complex
     "B904",  # exception chaining
+    "S101",  # use of assert
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
+"tests/*" = ["S101", "S311"]
+"examples/*" = ["S101", "S311"]
 
 [tool.bandit]
-exclude_dirs = ["tests", "docs", "examples"]
+exclude_dirs = ["tests", "docs", "examples", "notebooks"]
 skips = ["B101", "B601"]
 
 [tool.bandit.assert_used]
@@ -58,4 +135,13 @@ skips = ["*_test.py", "*/test_*.py", "*/tests/*"]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
-python_functions = ["test_*"] 
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--verbose",
+]
+markers = [
+    "slow: marks tests as slow",
+    "integration: marks tests as integration tests",
+] 
