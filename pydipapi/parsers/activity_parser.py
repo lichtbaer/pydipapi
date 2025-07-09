@@ -11,7 +11,7 @@ from .base_parser import BaseParser
 class ActivityParser(BaseParser):
     """
     Parser for extracting structured data from activity/plenary session responses.
-    
+
     Extracts information like session details, participants, topics,
     votes, and procedural information from activity API responses.
     """
@@ -35,10 +35,10 @@ class ActivityParser(BaseParser):
     def parse(self, data: Union[Dict[str, Any], List[Dict[str, Any]]]) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
         """
         Parse activity data and extract structured information.
-        
+
         Args:
             data: Raw activity data from API
-            
+
         Returns:
             Parsed activity data with extracted information
         """
@@ -50,10 +50,10 @@ class ActivityParser(BaseParser):
     def _parse_single_activity(self, activity: Dict[str, Any]) -> Dict[str, Any]:
         """
         Parse a single activity.
-        
+
         Args:
             activity: Single activity data
-            
+
         Returns:
             Parsed activity with extracted information
         """
@@ -79,10 +79,10 @@ class ActivityParser(BaseParser):
     def _extract_activity_type(self, activity: Dict[str, Any]) -> Optional[str]:
         """
         Extract activity type from activity data.
-        
+
         Args:
             activity: Activity data
-            
+
         Returns:
             Activity type or None
         """
@@ -105,10 +105,10 @@ class ActivityParser(BaseParser):
     def _extract_session_info(self, activity: Dict[str, Any]) -> Dict[str, Any]:
         """
         Extract session information.
-        
+
         Args:
             activity: Activity data
-            
+
         Returns:
             Session information dictionary
         """
@@ -127,10 +127,10 @@ class ActivityParser(BaseParser):
     def _extract_participants(self, activity: Dict[str, Any]) -> Dict[str, Any]:
         """
         Extract participant information.
-        
+
         Args:
             activity: Activity data
-            
+
         Returns:
             Participant information dictionary
         """
@@ -168,10 +168,10 @@ class ActivityParser(BaseParser):
     def _extract_topics(self, activity: Dict[str, Any]) -> Dict[str, Any]:
         """
         Extract topic information.
-        
+
         Args:
             activity: Activity data
-            
+
         Returns:
             Topic information dictionary
         """
@@ -209,10 +209,10 @@ class ActivityParser(BaseParser):
     def _extract_votes(self, activity: Dict[str, Any]) -> Dict[str, Any]:
         """
         Extract voting information.
-        
+
         Args:
             activity: Activity data
-            
+
         Returns:
             Voting information dictionary
         """
@@ -276,10 +276,10 @@ class ActivityParser(BaseParser):
     def _extract_procedural_info(self, activity: Dict[str, Any]) -> Dict[str, Any]:
         """
         Extract procedural information.
-        
+
         Args:
             activity: Activity data
-            
+
         Returns:
             Procedural information dictionary
         """
@@ -306,10 +306,10 @@ class ActivityParser(BaseParser):
     def _extract_dates(self, activity: Dict[str, Any]) -> Dict[str, Optional[datetime]]:
         """
         Extract date information from activity data.
-        
+
         Args:
             activity: Activity data
-            
+
         Returns:
             Dictionary of date types and their values
         """
@@ -343,10 +343,10 @@ class ActivityParser(BaseParser):
     def _extract_references(self, activity: Dict[str, Any]) -> Dict[str, List[str]]:
         """
         Extract references from activity data.
-        
+
         Args:
             activity: Activity data
-            
+
         Returns:
             Dictionary of reference types and their values
         """

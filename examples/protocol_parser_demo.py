@@ -108,22 +108,22 @@ def demo_protocol_parser():
         20. Wahlperiode
         123. Sitzung
         Berlin, Montag, den 15. Januar 2024
-        
+
         Präsident Dr. Wolfgang Schäuble:
         Ich eröffne die 123. Sitzung des Deutschen Bundestages.
-        
+
         Punkt 1: Beratung über den Gesetzentwurf zur Förderung erneuerbarer Energien
-        
+
         Herr Dr. Schmidt (CDU/CSU): Sehr geehrte Damen und Herren, der vorliegende Gesetzentwurf ist ein wichtiger Schritt zur Energiewende. Wir unterstützen die Ziele, haben aber Bedenken bei der Umsetzung.
-        
+
         Frau Mueller (SPD): Vielen Dank, Herr Präsident. Die SPD begrüßt diesen Gesetzentwurf. Er ist ein notwendiger Schritt zur Erreichung unserer Klimaziele.
-        
+
         Abstimmung: Ja: 350, Nein: 150, Enthaltungen: 50
-        
+
         Punkt 2: Kleine Anfrage der Abgeordneten Dr. Weber (FDP)
-        
+
         Herr Dr. Weber (FDP): Sehr geehrte Damen und Herren, ich richte eine kleine Anfrage an die Bundesregierung bezüglich der Digitalisierung der Verwaltung.
-        
+
         Kontakt: weber@bundestag.de, Tel: +49 30 227-54321
         '''
     }

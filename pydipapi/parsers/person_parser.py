@@ -11,7 +11,7 @@ from .base_parser import BaseParser
 class PersonParser(BaseParser):
     """
     Parser for extracting structured data from person/member responses.
-    
+
     Extracts information like party affiliation, committees, roles,
     contact information, and biographical data from person API responses.
     """
@@ -35,10 +35,10 @@ class PersonParser(BaseParser):
     def parse(self, data: Union[Dict[str, Any], List[Dict[str, Any]]]) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
         """
         Parse person data and extract structured information.
-        
+
         Args:
             data: Raw person data from API
-            
+
         Returns:
             Parsed person data with extracted information
         """
@@ -50,10 +50,10 @@ class PersonParser(BaseParser):
     def _parse_single_person(self, person: Dict[str, Any]) -> Dict[str, Any]:
         """
         Parse a single person.
-        
+
         Args:
             person: Single person data
-            
+
         Returns:
             Parsed person with extracted information
         """
@@ -79,10 +79,10 @@ class PersonParser(BaseParser):
     def _extract_basic_info(self, person: Dict[str, Any]) -> Dict[str, Any]:
         """
         Extract basic person information.
-        
+
         Args:
             person: Person data
-            
+
         Returns:
             Basic information dictionary
         """
@@ -98,10 +98,10 @@ class PersonParser(BaseParser):
     def _extract_party_info(self, person: Dict[str, Any]) -> Dict[str, Any]:
         """
         Extract party affiliation information.
-        
+
         Args:
             person: Person data
-            
+
         Returns:
             Party information dictionary
         """
@@ -124,10 +124,10 @@ class PersonParser(BaseParser):
     def _extract_committee_info(self, person: Dict[str, Any]) -> Dict[str, Any]:
         """
         Extract committee information.
-        
+
         Args:
             person: Person data
-            
+
         Returns:
             Committee information dictionary
         """
@@ -162,10 +162,10 @@ class PersonParser(BaseParser):
     def _extract_role_info(self, person: Dict[str, Any]) -> Dict[str, Any]:
         """
         Extract role information.
-        
+
         Args:
             person: Person data
-            
+
         Returns:
             Role information dictionary
         """
@@ -202,10 +202,10 @@ class PersonParser(BaseParser):
     def _extract_contact_info(self, person: Dict[str, Any]) -> Dict[str, Any]:
         """
         Extract contact information.
-        
+
         Args:
             person: Person data
-            
+
         Returns:
             Contact information dictionary
         """
@@ -237,10 +237,10 @@ class PersonParser(BaseParser):
     def _extract_biographical_info(self, person: Dict[str, Any]) -> Dict[str, Any]:
         """
         Extract biographical information.
-        
+
         Args:
             person: Person data
-            
+
         Returns:
             Biographical information dictionary
         """
@@ -265,10 +265,10 @@ class PersonParser(BaseParser):
     def _extract_constituency_info(self, person: Dict[str, Any]) -> Dict[str, Any]:
         """
         Extract constituency information.
-        
+
         Args:
             person: Person data
-            
+
         Returns:
             Constituency information dictionary
         """
@@ -284,10 +284,10 @@ class PersonParser(BaseParser):
     def _extract_dates(self, person: Dict[str, Any]) -> Dict[str, Optional[datetime]]:
         """
         Extract date information from person data.
-        
+
         Args:
             person: Person data
-            
+
         Returns:
             Dictionary of date types and their values
         """

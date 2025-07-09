@@ -109,13 +109,6 @@ class AsyncBaseApiClient:
                     try:
                         # Convert aiohttp response to requests-like response for error handling
                         response_text = await response.text()
-                        mock_response = type('MockResponse', (), {
-                            'status_code': response.status,
-                            'text': response_text,
-                            'reason': response.reason,
-                            'headers': response.headers,
-                            'json': lambda: asyncio.run(response.json())
-                        })()
                         # We'll handle errors differently for async
                         if response.status >= 400:
                             raise aiohttp.ClientResponseError(

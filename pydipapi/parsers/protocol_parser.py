@@ -11,7 +11,7 @@ from .base_parser import BaseParser
 class ProtocolParser(BaseParser):
     """
     Parser for extracting structured data from protocol/transcript responses.
-    
+
     Extracts information like speakers, topics, interventions,
     procedural elements, and voting records from protocol API responses.
     """
@@ -33,10 +33,10 @@ class ProtocolParser(BaseParser):
     def parse(self, data: Union[Dict[str, Any], List[Dict[str, Any]]]) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
         """
         Parse protocol data and extract structured information.
-        
+
         Args:
             data: Raw protocol data from API
-            
+
         Returns:
             Parsed protocol data with extracted information
         """
@@ -48,10 +48,10 @@ class ProtocolParser(BaseParser):
     def _parse_single_protocol(self, protocol: Dict[str, Any]) -> Dict[str, Any]:
         """
         Parse a single protocol.
-        
+
         Args:
             protocol: Single protocol data
-            
+
         Returns:
             Parsed protocol with extracted information
         """
@@ -77,10 +77,10 @@ class ProtocolParser(BaseParser):
     def _extract_session_info(self, protocol: Dict[str, Any]) -> Dict[str, Any]:
         """
         Extract session information.
-        
+
         Args:
             protocol: Protocol data
-            
+
         Returns:
             Session information dictionary
         """
@@ -100,10 +100,10 @@ class ProtocolParser(BaseParser):
     def _extract_speakers(self, protocol: Dict[str, Any]) -> Dict[str, Any]:
         """
         Extract speaker information.
-        
+
         Args:
             protocol: Protocol data
-            
+
         Returns:
             Speaker information dictionary
         """
@@ -159,10 +159,10 @@ class ProtocolParser(BaseParser):
     def _extract_topics(self, protocol: Dict[str, Any]) -> Dict[str, Any]:
         """
         Extract topic information.
-        
+
         Args:
             protocol: Protocol data
-            
+
         Returns:
             Topic information dictionary
         """
@@ -216,10 +216,10 @@ class ProtocolParser(BaseParser):
     def _extract_interventions(self, protocol: Dict[str, Any]) -> Dict[str, Any]:
         """
         Extract intervention information.
-        
+
         Args:
             protocol: Protocol data
-            
+
         Returns:
             Intervention information dictionary
         """
@@ -265,10 +265,10 @@ class ProtocolParser(BaseParser):
     def _extract_votes(self, protocol: Dict[str, Any]) -> Dict[str, Any]:
         """
         Extract voting information.
-        
+
         Args:
             protocol: Protocol data
-            
+
         Returns:
             Voting information dictionary
         """
@@ -342,10 +342,10 @@ class ProtocolParser(BaseParser):
     def _extract_procedural_elements(self, protocol: Dict[str, Any]) -> Dict[str, Any]:
         """
         Extract procedural elements.
-        
+
         Args:
             protocol: Protocol data
-            
+
         Returns:
             Procedural elements dictionary
         """
@@ -386,10 +386,10 @@ class ProtocolParser(BaseParser):
     def _extract_dates(self, protocol: Dict[str, Any]) -> Dict[str, Optional[datetime]]:
         """
         Extract date information from protocol data.
-        
+
         Args:
             protocol: Protocol data
-            
+
         Returns:
             Dictionary of date types and their values
         """
@@ -423,10 +423,10 @@ class ProtocolParser(BaseParser):
     def _extract_references(self, protocol: Dict[str, Any]) -> Dict[str, List[str]]:
         """
         Extract references from protocol data.
-        
+
         Args:
             protocol: Protocol data
-            
+
         Returns:
             Dictionary of reference types and their values
         """

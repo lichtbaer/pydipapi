@@ -12,7 +12,7 @@ from .base_parser import BaseParser
 class DocumentParser(BaseParser):
     """
     Parser for extracting structured data from document responses.
-    
+
     Extracts information like document type, authors, dates, content,
     references, and metadata from document API responses.
     """
@@ -36,10 +36,10 @@ class DocumentParser(BaseParser):
     def parse(self, data: Union[Dict[str, Any], List[Dict[str, Any]]]) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
         """
         Parse document data and extract structured information.
-        
+
         Args:
             data: Raw document data from API
-            
+
         Returns:
             Parsed document data with extracted information
         """
@@ -51,10 +51,10 @@ class DocumentParser(BaseParser):
     def _parse_single_document(self, doc: Dict[str, Any]) -> Dict[str, Any]:
         """
         Parse a single document.
-        
+
         Args:
             doc: Single document data
-            
+
         Returns:
             Parsed document with extracted information
         """
@@ -84,10 +84,10 @@ class DocumentParser(BaseParser):
     def _extract_document_type(self, doc: Dict[str, Any]) -> Optional[str]:
         """
         Extract document type from document data.
-        
+
         Args:
             doc: Document data
-            
+
         Returns:
             Document type or None
         """
@@ -110,10 +110,10 @@ class DocumentParser(BaseParser):
     def _extract_authors(self, doc: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Extract author information from document.
-        
+
         Args:
             doc: Document data
-            
+
         Returns:
             List of author dictionaries
         """
@@ -165,10 +165,10 @@ class DocumentParser(BaseParser):
     def _extract_dates(self, doc: Dict[str, Any]) -> Dict[str, Optional[datetime]]:
         """
         Extract date information from document.
-        
+
         Args:
             doc: Document data
-            
+
         Returns:
             Dictionary of date types and their values
         """
@@ -202,10 +202,10 @@ class DocumentParser(BaseParser):
     def _extract_content_summary(self, doc: Dict[str, Any]) -> Dict[str, Any]:
         """
         Extract content summary from document.
-        
+
         Args:
             doc: Document data
-            
+
         Returns:
             Content summary dictionary
         """
@@ -236,10 +236,10 @@ class DocumentParser(BaseParser):
     def _extract_references(self, doc: Dict[str, Any]) -> Dict[str, List[str]]:
         """
         Extract references from document.
-        
+
         Args:
             doc: Document data
-            
+
         Returns:
             Dictionary of reference types and their values
         """

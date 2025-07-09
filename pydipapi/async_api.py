@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class AsyncDipAnfrage(AsyncBaseApiClient):
     """
     Async client for the German Bundestag DIP API.
-    
+
     This client provides async versions of all API methods for better performance
     when making multiple concurrent requests.
     """
