@@ -133,6 +133,8 @@ nav:
   - Getting Started:
     - Grundlegende Verwendung: usage.md
     - Interaktive Notebooks: notebooks.md
+  - Content-Parser:
+    - Content-Parser: content_parsers.md
   - API Reference:
     - API-Referenz: api_reference.md
     - OpenAPI-Spezifikation: openapi_spec.md

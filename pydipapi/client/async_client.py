@@ -4,15 +4,12 @@ Async client for the DIP API with rate limiting, retry logic, and caching.
 
 import asyncio
 import logging
-import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import aiohttp
-import requests
 
-from .base_client import BaseApiClient
 from ..util.cache import SimpleCache
-from ..util.error_handler import handle_api_error, is_rate_limited, should_retry
+from ..util.error_handler import is_rate_limited, should_retry
 
 logger = logging.getLogger(__name__)
 
@@ -112,13 +109,6 @@ class AsyncBaseApiClient:
                     try:
                         # Convert aiohttp response to requests-like response for error handling
                         response_text = await response.text()
-                        mock_response = type('MockResponse', (), {
-                            'status_code': response.status,
-                            'text': response_text,
-                            'reason': response.reason,
-                            'headers': response.headers,
-                            'json': lambda: asyncio.run(response.json())
-                        })()
                         # We'll handle errors differently for async
                         if response.status >= 400:
                             raise aiohttp.ClientResponseError(
@@ -240,4 +230,4 @@ class AsyncBaseApiClient:
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Async context manager exit."""
-        await self.close() 
+        await self.close()

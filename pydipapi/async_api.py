@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class AsyncDipAnfrage(AsyncBaseApiClient):
     """
     Async client for the German Bundestag DIP API.
-    
+
     This client provides async versions of all API methods for better performance
     when making multiple concurrent requests.
     """
@@ -305,12 +305,12 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             from datetime import datetime, timedelta
             end_date = datetime.now()
             start_date = end_date - timedelta(days=days)
-            
+
             filters = {
                 'datum_von': start_date.strftime('%Y-%m-%d'),
                 'datum_bis': end_date.strftime('%Y-%m-%d')
             }
-            
+
             result = await self._fetch_paginated_data('aktivitaet', anzahl, **filters)
             return result or []
         except Exception as e:
@@ -519,4 +519,4 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
     def clear_expired_cache(self) -> None:
         """Clear expired cache entries."""
         if self.cache:
-            self.cache.clear_expired() 
+            self.cache.clear_expired()

@@ -7,6 +7,27 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Hinzugefügt
+- **Content-Parser** - Vollständige Parser-Suite für strukturierte Datenanalyse
+  - **ProtocolParser** - Extrahiert Informationen aus Volltext-Plenarprotokollen
+  - **DocumentParser** - Analysiert Drucksachen und andere Dokumente
+  - **PersonParser** - Verarbeitet Personen-Daten von Abgeordneten
+  - **ActivityParser** - Extrahiert Informationen aus Aktivitäten
+- **Async-Support** - Asynchrone API-Aufrufe für bessere Performance
+- **Erweiterte Regex-Patterns** - Nützliche Extraktionsmethoden für alle Parser
+- **Batch-Parsing** - Parsen mehrerer Objekte in einem Aufruf
+- **Vollständige Parser-Dokumentation** - Detaillierte Anleitung für alle Parser
+
+### Geändert
+- **Projektstruktur** - Neue `pydipapi.parsers` Modul-Struktur
+- **Import-Struktur** - Parser sind jetzt direkt aus `pydipapi` importierbar
+- **Dokumentation** - Neue Content-Parser Sektion mit Beispielen
+
+### Verbessert
+- **Performance** - Optimierte Regex-Patterns für bessere Extraktion
+- **Code-Qualität** - Umfassende Tests für alle Parser
+- **Entwickler-Experience** - Einfache Parser-Integration
+
 ### Geplant
 - Erweiterte Visualisierungsfunktionen
 - Machine Learning Integration für Dokumentenanalyse
