@@ -2,6 +2,7 @@
 Caching utilities for the DIP API client.
 """
 
+import base64
 import hashlib
 import json
 import logging
@@ -72,7 +73,8 @@ class SimpleCache:
                 cache_file.unlink()
                 return None
 
-            return cached_data['data']
+            # Restore bytes objects from base64 strings
+            return self._restore_from_serialization(cached_data['data'])
 
         except (json.JSONDecodeError, KeyError):
             # Invalid cache file, remove it
@@ -92,9 +94,12 @@ class SimpleCache:
         cache_key = self._get_cache_key(url, params)
         cache_file = self.cache_dir / f"{cache_key}.json"
 
+        # Convert bytes objects to base64 strings for JSON serialization
+        serializable_data = self._prepare_for_serialization(data)
+
         cache_data = {
             'timestamp': time.time(),
-            'data': data
+            'data': serializable_data
         }
 
         try:
@@ -129,3 +134,45 @@ class SimpleCache:
 
             except Exception as e:
                 logging.warning(f"Failed to process cache file {cache_file}: {e}")
+
+    def _prepare_for_serialization(self, data: Any) -> Any:
+        """
+        Convert bytes objects to base64 strings for JSON serialization.
+
+        Args:
+            data: The data to prepare for serialization.
+
+        Returns:
+            The data with bytes objects converted to base64 strings.
+        """
+        if isinstance(data, bytes):
+            return {
+                '__type__': 'bytes',
+                '__data__': base64.b64encode(data).decode('utf-8')
+            }
+        elif isinstance(data, dict):
+            return {key: self._prepare_for_serialization(value) for key, value in data.items()}
+        elif isinstance(data, list):
+            return [self._prepare_for_serialization(item) for item in data]
+        else:
+            return data
+
+    def _restore_from_serialization(self, data: Any) -> Any:
+        """
+        Restore bytes objects from base64 strings after JSON deserialization.
+
+        Args:
+            data: The data to restore from serialization.
+
+        Returns:
+            The data with base64 strings converted back to bytes objects.
+        """
+        if isinstance(data, dict):
+            if data.get('__type__') == 'bytes' and '__data__' in data:
+                return base64.b64decode(data['__data__'].encode('utf-8'))
+            else:
+                return {key: self._restore_from_serialization(value) for key, value in data.items()}
+        elif isinstance(data, list):
+            return [self._restore_from_serialization(item) for item in data]
+        else:
+            return data
