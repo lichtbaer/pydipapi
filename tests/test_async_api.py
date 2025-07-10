@@ -176,7 +176,7 @@ class TestAsyncDipAnfrage(unittest.TestCase):
     def test_build_url(self):
         """Test URL building in async client."""
         url = self.async_client._build_url('person', wahlperiode=20)
-        self.assertIn('wahlperiode=20', url)
+        self.assertIn('f.wahlperiode=20', url)
 
     def test_build_url_with_list_params(self):
         """Test URL building with list parameters."""

@@ -88,6 +88,65 @@ class DipAnfrage(BaseApiClient):
             return documents[0] if documents else None
         return None
 
+    def _map_filter_parameters(self, **kwargs) -> Dict[str, Any]:
+        """
+        Map user-friendly parameter names to API-compliant parameter names.
+
+        This function converts parameters like 'wahlperiode' to 'f.wahlperiode'
+        as required by the Bundestag API.
+
+        Args:
+            **kwargs: User-friendly filter parameters
+
+        Returns:
+            Dict[str, Any]: API-compliant parameters
+        """
+        # Parameter mapping from user-friendly names to API names
+        PARAMETER_MAPPING = {
+            'wahlperiode': 'f.wahlperiode',
+            'person': 'f.person',
+            'person_id': 'f.person_id',
+            'datum_start': 'f.datum.start',
+            'datum_end': 'f.datum.end',
+            'aktualisiert_start': 'f.aktualisiert.start',
+            'aktualisiert_end': 'f.aktualisiert.end',
+            'drucksache': 'f.drucksache',
+            'id': 'f.id',
+            'plenarprotokoll': 'f.plenarprotokoll',
+            'vorgang': 'f.vorgang',
+            'dokumentnummer': 'f.dokumentnummer',
+            'dokumentart': 'f.dokumentart',
+            'drucksachetyp': 'f.drucksachetyp',
+            'frage_nummer': 'f.frage_nummer',
+            'gesta': 'f.gesta',
+            'vorgangsposition_id': 'f.vorgangsposition_id',
+            'vorgangstyp': 'f.vorgangstyp',
+            'vorgangstyp_notation': 'f.vorgangstyp_notation',
+            'beratungsstand': 'f.beratungsstand',
+            'verkuendung_fundstelle': 'f.verkuendung_fundstelle',
+            'initiative': 'f.initiative',
+            'urheber': 'f.urheber',
+            'deskriptor': 'f.deskriptor',
+            'sachgebiet': 'f.sachgebiet',
+            'zuordnung': 'f.zuordnung',
+            'aktivitaet': 'f.aktivitaet',
+            'titel': 'f.titel',
+        }
+
+        mapped_params = {}
+
+        for key, value in kwargs.items():
+            # Map the parameter name if it exists in our mapping
+            if key in PARAMETER_MAPPING:
+                mapped_key = PARAMETER_MAPPING[key]
+            else:
+                # Keep unmapped parameters as-is (like 'anzahl', 'cursor', 'format', 'q')
+                mapped_key = key
+
+            mapped_params[mapped_key] = value
+
+        return mapped_params
+
     def _build_url(self, endpoint: str, **kwargs) -> str:
         """
         Build a URL for the given endpoint with parameters.
@@ -101,7 +160,11 @@ class DipAnfrage(BaseApiClient):
         """
         # Add API key to parameters
         kwargs['apikey'] = self.api_key
-        return super()._build_url(endpoint, **kwargs)
+
+        # Map filter parameters to API-compliant names
+        mapped_params = self._map_filter_parameters(**kwargs)
+
+        return super()._build_url(endpoint, **mapped_params)
 
     def get_person(self, anzahl: int = 100, **filters) -> List[dict]:
         """

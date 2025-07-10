@@ -212,7 +212,7 @@ class TestDipAnfrage(unittest.TestCase):
         self.assertIn('person', url)
         self.assertIn('apikey=test_key', url)
         self.assertIn('anzahl=10', url)
-        self.assertIn('wahlperiode=20', url)
+        self.assertIn('f.wahlperiode=20', url)
 
         # Test URL building with list parameters
         url = dip._build_url('person', f_id=[1, 2, 3])

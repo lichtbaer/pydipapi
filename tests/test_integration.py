@@ -278,7 +278,7 @@ class TestIntegration(unittest.TestCase):
         self.assertIn('person', url)
         self.assertIn('apikey', url)
         self.assertIn('anzahl=10', url)
-        self.assertIn('wahlperiode=20', url)
+        self.assertIn('f.wahlperiode=20', url)
 
     def test_empty_response_handling_integration(self):
         """Test handling of empty responses from real API."""
