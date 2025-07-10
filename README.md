@@ -1,22 +1,21 @@
-# pydipapi - Python Client für die deutsche Bundestag API
+# PyDipAPI
 
+[![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![PyPI version](https://badge.fury.io/py/pydipapi.svg)](https://badge.fury.io/py/pydipapi)
-[![Documentation](https://img.shields.io/badge/docs-latest-brightgreen.svg)](https://lichtbaer.github.io/pydipapi/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 
-Ein moderner, vollständiger Python-Client für die deutsche Bundestag API (DIP) mit erweiterten Funktionen für Batch-Operationen, Caching und Performance-Optimierung.
+**PyDipAPI** is a modern, feature-rich Python client for the German Bundestag (Parliament) API. It provides easy access to parliamentary data including members, documents, protocols, and activities with advanced features like async support, content parsing, and intelligent caching.
 
 ## 🚀 Features
 
-- **Vollständige API-Abdeckung** - Alle Endpunkte der Bundestag API
-- **Batch-Operationen** - Mehrere IDs in einem Aufruf abrufen
-- **Intelligentes Caching** - Automatisches Caching für bessere Performance
-- **Rate Limiting** - Konfigurierbare Verzögerungen zwischen Requests
-- **Retry-Logik** - Automatische Wiederholung bei Fehlern
-- **Flexible Filterung** - Umfassende Such- und Filteroptionen
-- **Convenience-Methoden** - Einfache Abfragen für häufige Anwendungsfälle
-- **Vollständige Dokumentation** - Detaillierte API-Referenz und Beispiele
+- **🔄 Async Support**: High-performance asynchronous API client for concurrent requests
+- **📊 Content Parsers**: Extract structured data from parliamentary documents
+- **⚡ Intelligent Caching**: Built-in caching with configurable TTL and size limits
+- **🔍 Advanced Filtering**: Powerful search and filtering capabilities
+- **📦 Batch Operations**: Efficient bulk data retrieval and processing
+- **🛡️ Error Handling**: Robust error handling with retry mechanisms
+- **📚 Type Safety**: Full type annotations for better IDE support
+- **🎯 Easy to Use**: Simple, intuitive API design
 
 ## 📦 Installation
 
@@ -24,202 +23,297 @@ Ein moderner, vollständiger Python-Client für die deutsche Bundestag API (DIP)
 pip install pydipapi
 ```
 
-## 🔑 API-Key erhalten
+## 🏃 Quick Start
 
-1. Besuchen Sie [https://dip.bundestag.de/über-dip/hilfe/api](https://dip.bundestag.de/über-dip/hilfe/api)
-2. Registrieren Sie sich für einen API-Key
-3. Setzen Sie die Umgebungsvariable: `export DIP_API_KEY='ihr_api_key'`
-
-## 🎯 Schnellstart
+### Basic Usage
 
 ```python
 from pydipapi import DipAnfrage
 
-# Client initialisieren
-dip = DipAnfrage(api_key='ihr_api_key')
+# Initialize the client
+api = DipAnfrage(api_key="your_api_key_here")
 
-# Personen abrufen
-persons = dip.get_person(anzahl=10)
+# Get members of parliament
+members = api.get_person(anzahl=10)
+for member in members:
+    print(f"{member['vorname']} {member['nachname']} ({member.get('fraktion', 'Unknown')})")
 
-# Dokumente durchsuchen
-docs = dip.search_documents("Bundeshaushalt", anzahl=5)
-
-# Batch-Operationen
-person_ids = [12345, 67890, 11111]
-persons_batch = dip.get_person_ids(person_ids)
-
-# Convenience-Methoden
-recent_activities = dip.get_recent_activities(days=7)
+# Get recent documents
+documents = api.get_drucksache(anzahl=5)
+for doc in documents:
+    print(f"Document: {doc['titel']}")
 ```
 
-## 📚 Dokumentation
-
-Die vollständige Dokumentation ist verfügbar unter: **[https://lichtbaer.github.io/pydipapi/](https://lichtbaer.github.io/pydipapi/)**
-
-### Dokumentationsseiten
-
-- **[Grundlegende Verwendung](https://lichtbaer.github.io/pydipapi/usage/)** - Erste Schritte und grundlegende Funktionen
-- **[Interaktive Notebooks](https://lichtbaer.github.io/pydipapi/notebooks/)** - Jupyter Notebooks für praktisches Lernen
-- **[API-Referenz](https://lichtbaer.github.io/pydipapi/api_reference/)** - Vollständige API-Dokumentation mit Filter-Mapping
-- **[OpenAPI-Spezifikation](https://lichtbaer.github.io/pydipapi/openapi_spec/)** - Technische API-Details
-- **[Entwickler-Guide](https://lichtbaer.github.io/pydipapi/developer_guide/)** - Erweiterte Nutzung und Entwicklung
-- **[Changelog](https://lichtbaer.github.io/pydipapi/changelog/)** - Versionshistorie und Änderungen
-
-### 📓 Jupyter Notebooks
-
-Interaktive Tutorials für praktisches Lernen (im `notebooks/` Verzeichnis):
-
-- **`01_basic_usage.ipynb`** - Grundlagen und erste Schritte mit der API
-- **`02_filtering_and_search.ipynb`** - Erweiterte Filteroptionen und Suchfunktionen  
-- **`03_batch_operations_and_caching.ipynb`** - Performance-Optimierung und Batch-Operationen
-
-## 🔧 Konfiguration
+### Async Usage
 
 ```python
-# Erweiterte Konfiguration
-dip = DipAnfrage(
-    api_key='ihr_api_key',
-    rate_limit_delay=0.1,    # 100ms zwischen Requests
-    max_retries=3,           # Maximale Wiederholungsversuche
-    enable_cache=True,        # Caching aktivieren
-    cache_ttl=3600           # Cache-TTL in Sekunden
+import asyncio
+from pydipapi.async_api import AsyncDipAnfrage
+
+async def main():
+    async with AsyncDipAnfrage(api_key="your_api_key_here") as api:
+        # Parallel requests for better performance
+        members, documents, activities = await asyncio.gather(
+            api.get_person(anzahl=10),
+            api.get_drucksache(anzahl=10),
+            api.get_aktivitaet(anzahl=10)
+        )
+        
+        print(f"Retrieved {len(members)} members, {len(documents)} documents, {len(activities)} activities")
+
+asyncio.run(main())
+```
+
+### Content Parsing
+
+```python
+from pydipapi import DipAnfrage
+from pydipapi.parsers import DocumentParser, PersonParser
+
+api = DipAnfrage(api_key="your_api_key_here")
+
+# Parse document content
+documents = api.get_drucksache(anzahl=5)
+doc_parser = DocumentParser()
+parsed_docs = doc_parser.parse_batch(documents)
+
+for doc in parsed_docs:
+    print(f"Title: {doc.get('titel')}")
+    print(f"Type: {doc.get('dokumenttyp')}")
+    print(f"Authors: {', '.join(doc.get('autoren', []))}")
+
+# Parse member information
+members = api.get_person(anzahl=10)
+person_parser = PersonParser()
+parsed_members = person_parser.parse_batch(members)
+
+for member in parsed_members:
+    print(f"Name: {member.get('name')}")
+    print(f"Party: {member.get('partei')}")
+    print(f"Constituency: {member.get('wahlkreis')}")
+```
+
+## 📊 Advanced Features
+
+### Intelligent Caching
+
+```python
+from pydipapi import DipAnfrage
+from pydipapi.util.cache import DipCache
+
+# Configure caching
+cache = DipCache(
+    max_size=1000,      # Maximum number of cached items
+    ttl_seconds=3600    # Cache TTL: 1 hour
+)
+
+api = DipAnfrage(api_key="your_api_key_here", cache=cache)
+
+# First call hits the API
+members = api.get_person(anzahl=10)
+
+# Second call uses cache (much faster)
+members_cached = api.get_person(anzahl=10)
+
+# Check cache statistics
+print(f"Cache hits: {cache.hits}")
+print(f"Cache misses: {cache.misses}")
+print(f"Hit rate: {cache.hit_rate:.2%}")
+```
+
+### Advanced Filtering
+
+```python
+from datetime import datetime, timedelta
+
+# Filter by date range
+start_date = datetime.now() - timedelta(days=30)
+end_date = datetime.now()
+
+recent_documents = api.get_drucksache(
+    datum_start=start_date.strftime("%Y-%m-%d"),
+    datum_end=end_date.strftime("%Y-%m-%d"),
+    anzahl=50
+)
+
+# Filter by electoral period
+current_period_docs = api.get_drucksache(
+    wahlperiode=20,
+    anzahl=100
+)
+
+# Complex filtering with multiple parameters
+specific_activities = api.get_aktivitaet(
+    wahlperiode=20,
+    datum_start="2023-01-01",
+    anzahl=50
 )
 ```
 
-## 📊 Verfügbare Endpunkte
-
-| Endpunkt | Beschreibung | Batch-Support |
-|----------|--------------|---------------|
-| `get_person()` | Personen abrufen | ✅ |
-| `get_aktivitaet()` | Aktivitäten abrufen | ✅ |
-| `get_drucksache()` | Dokumente abrufen | ✅ |
-| `get_plenarprotokoll()` | Protokolle abrufen | ✅ |
-| `get_vorgang()` | Vorgänge abrufen | ✅ |
-| `get_vorgangsposition()` | Vorgangspositionen abrufen | ✅ |
-
-## 🔍 Filter-Optionen
-
-| Parameter | Beschreibung | Beispiel |
-|-----------|--------------|----------|
-| `wahlperiode` | Legislaturperiode | `wahlperiode=20` |
-| `datum_start` / `datum_end` | Datumsbereich | `datum_start="2024-01-01"` |
-| `titel` | Titel-Suche | `titel="Bundeshaushalt"` |
-| `drucksachetyp` | Dokumenttyp | `drucksachetyp="Antrag"` |
-| `vorgangstyp` | Vorgangstyp | `vorgangstyp="Gesetzgebung"` |
-
-## 🚀 Convenience-Methoden
+### Batch Operations
 
 ```python
-# Suche nach Dokumenten
-docs = dip.search_documents("Klimaschutz", anzahl=10)
+# Efficient batch processing
+all_members = []
+batch_size = 100
 
-# Aktuelle Aktivitäten
-recent = dip.get_recent_activities(days=7)
+for offset in range(0, 1000, batch_size):
+    batch = api.get_person(anzahl=batch_size, offset=offset)
+    all_members.extend(batch)
+    print(f"Retrieved {len(all_members)} members so far...")
 
-# Personen nach Namen suchen
-persons = dip.get_person_by_name("Merkel", anzahl=5)
-
-# Dokumente nach Typ
-anträge = dip.get_documents_by_type("Antrag", anzahl=10)
-
-# Vorgänge nach Typ
-gesetzgebung = dip.get_proceedings_by_type("Gesetzgebung", anzahl=10)
+print(f"Total members retrieved: {len(all_members)}")
 ```
 
-## 📈 Performance-Optimierung
+## 🏗️ Available Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| **Members** | `get_person()` | Retrieve parliament members |
+| **Documents** | `get_drucksache()` | Access parliamentary documents |
+| **Protocols** | `get_plenarprotokoll()` | Get plenary session protocols |
+| **Activities** | `get_aktivitaet()` | Fetch parliamentary activities |
+| **Procedures** | `get_vorgang()` | Access legislative procedures |
+
+## 🔧 Content Parsers
+
+PyDipAPI includes specialized parsers for extracting structured data:
+
+- **`ProtocolParser`**: Extract speakers, topics, and interventions from plenary protocols
+- **`DocumentParser`**: Parse document metadata, authors, and content summaries
+- **`PersonParser`**: Extract member information, parties, and constituencies
+- **`ActivityParser`**: Parse voting results, participants, and related documents
+
+## ⚡ Performance Features
+
+### Async Support
+- **Concurrent Requests**: Make multiple API calls simultaneously
+- **Connection Pooling**: Efficient HTTP connection management
+- **Context Managers**: Automatic resource cleanup
 
 ### Caching
-```python
-# Cache aktivieren
-dip = DipAnfrage(api_key='key', enable_cache=True, cache_ttl=7200)
+- **In-Memory Cache**: Fast access to recently requested data
+- **Configurable TTL**: Control cache expiration times
+- **Size Limits**: Prevent memory overflow with configurable limits
 
-# Cache verwalten
-dip.clear_cache()           # Gesamten Cache löschen
-dip.clear_expired_cache()   # Abgelaufene Einträge löschen
-```
+### Error Handling
+- **Automatic Retries**: Configurable retry logic for failed requests
+- **Rate Limiting**: Respect API rate limits with intelligent backoff
+- **Detailed Logging**: Comprehensive logging for debugging
 
-### Batch-Operationen
-```python
-# Mehrere IDs auf einmal abrufen
-person_ids = [12345, 67890, 11111]
-persons = dip.get_person_ids(person_ids)
+## 📚 Documentation & Examples
 
-doc_ids = [12345, 67890]
-docs = dip.get_drucksache_ids(doc_ids, text=True)
-```
+### Jupyter Notebooks
+Comprehensive tutorials are available in the `notebooks/` directory:
 
-## 🛠️ Entwicklung
+1. **Basic Usage** - Getting started with PyDipAPI
+2. **Filtering & Search** - Advanced query techniques
+3. **Batch Operations** - Efficient bulk data processing
+4. **Content Parsers** - Structured data extraction
+5. **Async API** - High-performance async operations
+6. **Data Visualization** - Creating charts and dashboards
 
-### Installation für Entwicklung
+### Example Scripts
+Check the `examples/` directory for practical use cases:
+- Basic API usage
+- Async implementation
+- Content parsing examples
+- Advanced filtering techniques
+
+## 🛠️ Development
+
+### Setup Development Environment
+
 ```bash
 git clone https://github.com/lichtbaer/pydipapi.git
 cd pydipapi
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
 pip install -e .
-pip install -r requirements-dev.txt
+
+# Install development dependencies
+pip install pytest pytest-cov ruff bandit
 ```
 
-### Tests ausführen
+### Running Tests
+
 ```bash
-pytest tests/
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov=pydipapi
+
+# Run specific test categories
+pytest tests/test_api.py
+pytest tests/test_async_api.py
+pytest tests/test_parsers.py
 ```
 
-### Linting
+### Code Quality
+
 ```bash
+# Linting with Ruff
 ruff check .
+
+# Security analysis with Bandit
 bandit -r pydipapi/
+
+# Type checking
+mypy pydipapi/
 ```
 
-### Dokumentation lokal bauen
-```bash
-mkdocs serve
-```
+## 🤝 Contributing
 
-## 📝 Lizenz
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
 
-Dieses Projekt ist unter der MIT-Lizenz lizenziert. Siehe [LICENSE](LICENSE) für Details.
+### Contribution Guidelines
 
-## 🤝 Beitragen
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
+4. **Push** to the branch (`git push origin feature/amazing-feature`)
+5. **Open** a Pull Request
 
-Beiträge sind willkommen! Bitte lesen Sie den [Entwickler-Guide](https://lichtbaer.github.io/pydipapi/developer_guide/) für Details.
+### Development Standards
 
-### Entwicklungsumgebung einrichten
+- Write tests for new features
+- Follow PEP 8 style guidelines
+- Add type annotations
+- Update documentation
+- Ensure all tests pass
 
-1. Repository klonen
-2. Virtuelle Umgebung erstellen
-3. Abhängigkeiten installieren: `pip install -r requirements-dev.txt`
-4. Pre-Commit Hooks installieren: `pre-commit install`
-5. Tests ausführen: `pytest tests/`
+## 📋 Requirements
 
-### Pull Request Guidelines
+- **Python**: 3.8 or higher
+- **Dependencies**: 
+  - `requests >= 2.25.0`
+  - `pydantic >= 1.8.0`
+  - `aiohttp >= 3.8.0` (for async features)
 
-- Verwenden Sie aussagekräftige Commit-Messages
-- Fügen Sie Tests für neue Features hinzu
-- Aktualisieren Sie die Dokumentation bei Bedarf
-- Stellen Sie sicher, dass alle Tests bestehen
+## 📄 License
 
-## 📞 Support
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## 🙋 Support
+
+- **Documentation**: [Read the Docs](https://pydipapi.readthedocs.io/)
 - **Issues**: [GitHub Issues](https://github.com/lichtbaer/pydipapi/issues)
-- **Dokumentation**: [https://lichtbaer.github.io/pydipapi/](https://lichtbaer.github.io/pydipapi/)
-- **API-Dokumentation**: [Bundestag API](https://dip.bundestag.de/über-dip/hilfe/api)
+- **Discussions**: [GitHub Discussions](https://github.com/lichtbaer/pydipapi/discussions)
 
-## 🙏 Danksagungen
+## 🌟 Acknowledgments
 
-- **Deutscher Bundestag** - Bereitstellung der API
-- **Python Community** - Open Source Libraries und Tools
-- **MkDocs Team** - Dokumentations-Framework
-- **Ruff Team** - Python Linter
-- **Bandit Team** - Sicherheits-Tool
-
-## 📊 Projekt-Status
-
-- **Version**: 0.1.0 (Beta)
-- **Python**: 3.9+
-- **Status**: Beta - Vorbereitung für 1.0.0
-- **Tests**: ✅ Bestehend
-- **Dokumentation**: ✅ Vollständig
-- **CI/CD**: ✅ Konfiguriert
+- German Bundestag for providing the public API
+- The Python community for excellent libraries and tools
+- Contributors who help improve this project
 
 ---
 
-**Hinweis**: Dieses Projekt ist nicht mit dem deutschen Bundestag affiliiert. Für offizielle Informationen besuchen Sie [https://dip.bundestag.de/](https://dip.bundestag.de/).
+**Made with ❤️ for the Python and open government data communities**
+
+[🇩🇪 Deutsche Version](README_DE.md) | [📚 Documentation](https://pydipapi.readthedocs.io/) | [🐛 Report Bug](https://github.com/lichtbaer/pydipapi/issues) | [💡 Request Feature](https://github.com/lichtbaer/pydipapi/issues) 
