@@ -149,7 +149,7 @@ git push origin v1.0.0-rc1
 Use [Keep a Changelog](https://keepachangelog.com/) format:
 
 ```markdown
-## [1.0.0] - 2024-01-15
+## [1.0.0] - 2025-07-10
 
 ### Added
 - New feature X

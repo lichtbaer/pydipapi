@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dependabot configuration for automated dependency updates
 - Comprehensive test coverage and quality checks
 
-## [0.1.1] - 2024-12-19
+## [0.1.1] - 2025-07-10
 
 ### Fixed
 - **AsyncDipAnfrage**: Fixed critical bugs in async client
@@ -42,7 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Simplified rate limiting logic for better aiohttp compatibility
 - Enhanced type safety with `Optional[Any]` return types
 
-## [0.1.0] - 2024-01-XX
+## [0.1.0] - 2025-01-XX
 
 ### Added
 - Initial release of pydipapi
@@ -67,7 +67,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - pydantic >= 1.8.0
 - aiohttp (for async support)
 
-## [0.0.1] - 2024-01-XX
+## [0.0.1] - 2025-01-XX
 
 ### Added
 - Project initialization

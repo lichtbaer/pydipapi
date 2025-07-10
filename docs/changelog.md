@@ -13,7 +13,7 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - GraphQL API Wrapper
 - Real-time WebSocket Support
 
-## [0.1.1] - 2024-12-19
+## [0.1.1] - 2025-07-10
 
 ### Behoben
 - **AsyncDipAnfrage** - Kritische Bugs im Async-Client behoben
@@ -43,7 +43,7 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Vereinfachte Rate-Limiting-Logik für bessere aiohttp-Kompatibilität
 - Verbesserte Type-Safety mit `Optional[Any]` Return-Types
 
-## [1.0.0] - 2024-12-19
+## [1.0.0] - 2025-07-10
 
 ### Hinzugefügt
 - **Vollständige API-Abdeckung** - Alle Bundestag API Endpunkte implementiert
@@ -78,7 +78,7 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - **Import-Fehler** - Korrekte Import-Struktur implementiert
 - **Dokumentationsfehler** - Aktualisierte und korrekte Dokumentation
 
-## [0.2.0] - 2024-12-18
+## [0.2.0] - 2025-06-XX
 
 ### Hinzugefügt
 - **Batch-Operationen** - `get_person_ids()`, `get_drucksache_ids()`, etc.
@@ -93,7 +93,7 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - **Error Handling** - Verbesserte Fehlerbehandlung
 - **Dokumentation** - Erweiterte und verbesserte Dokumentation
 
-## [0.1.0] - 2024-12-17
+## [0.1.0] - 2025-01-XX
 
 ### Hinzugefügt
 - **Grundlegende API-Funktionalität** - Personen, Aktivitäten, Dokumente abrufen
