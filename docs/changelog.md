@@ -7,32 +7,41 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-### Hinzugefügt
-- **Content-Parser** - Vollständige Parser-Suite für strukturierte Datenanalyse
-  - **ProtocolParser** - Extrahiert Informationen aus Volltext-Plenarprotokollen
-  - **DocumentParser** - Analysiert Drucksachen und andere Dokumente
-  - **PersonParser** - Verarbeitet Personen-Daten von Abgeordneten
-  - **ActivityParser** - Extrahiert Informationen aus Aktivitäten
-- **Async-Support** - Asynchrone API-Aufrufe für bessere Performance
-- **Erweiterte Regex-Patterns** - Nützliche Extraktionsmethoden für alle Parser
-- **Batch-Parsing** - Parsen mehrerer Objekte in einem Aufruf
-- **Vollständige Parser-Dokumentation** - Detaillierte Anleitung für alle Parser
-
-### Geändert
-- **Projektstruktur** - Neue `pydipapi.parsers` Modul-Struktur
-- **Import-Struktur** - Parser sind jetzt direkt aus `pydipapi` importierbar
-- **Dokumentation** - Neue Content-Parser Sektion mit Beispielen
-
-### Verbessert
-- **Performance** - Optimierte Regex-Patterns für bessere Extraktion
-- **Code-Qualität** - Umfassende Tests für alle Parser
-- **Entwickler-Experience** - Einfache Parser-Integration
-
 ### Geplant
 - Erweiterte Visualisierungsfunktionen
 - Machine Learning Integration für Dokumentenanalyse
 - GraphQL API Wrapper
 - Real-time WebSocket Support
+
+## [0.1.1] - 2024-12-19
+
+### Behoben
+- **AsyncDipAnfrage** - Kritische Bugs im Async-Client behoben
+  - `_make_request()` gab `None` für gecachte Daten zurück - behoben
+  - Context Manager Probleme mit aiohttp Responses - behoben  
+  - Rate Limiting Kompatibilität mit aiohttp Responses - behoben
+  - Verbesserte Fehlerbehandlung und Response-Management
+- **Jupyter Notebooks** - Alle Tutorial-Notebooks verbessert und Fehler behoben
+  - Async-Probleme in `05_async_api_tutorial.ipynb` behoben
+  - Umfassende Fehlerbehandlung und Fallback-Mechanismen hinzugefügt
+  - Verbesserte Performance-Tests und Dokumentation
+  - API-Key-Behandlung in allen Notebooks aktualisiert
+
+### Verbessert
+- **Tutorial-Notebooks** - Wesentliche Verbesserungen in allen 6 Tutorial-Notebooks
+  - `02_filtering_and_search.ipynb`: Erweitert mit umfassenden Suchbeispielen
+  - `03_batch_operations_and_caching.ipynb`: Verbessert mit praktischen Batch-Beispielen
+  - `04_content_parsers.ipynb`: Fehlende `parse_batch` Methoden und Beispiele hinzugefügt
+  - `05_async_api_tutorial.ipynb`: Async-Probleme behoben und Fehlerbehandlung verbessert
+  - `06_data_visualization.ipynb`: Erheblich erweitert mit umfangreichen Visualisierungsbeispielen
+- **Code-Qualität** - Verbesserte Type-Annotations und Fehlerbehandlung im gesamten Codebase
+- **Dokumentation** - Alle Beispiele und Dokumentation aktualisiert um Bug-Fixes zu reflektieren
+
+### Technisch
+- MockResponse-Implementierung für ordnungsgemäße Async-Response-Behandlung repariert
+- Verbesserte Verbindungsverwaltung mit ordnungsgemäßen `await response.release()` Aufrufen
+- Vereinfachte Rate-Limiting-Logik für bessere aiohttp-Kompatibilität
+- Verbesserte Type-Safety mit `Optional[Any]` Return-Types
 
 ## [1.0.0] - 2024-12-19
 

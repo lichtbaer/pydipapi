@@ -12,6 +12,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dependabot configuration for automated dependency updates
 - Comprehensive test coverage and quality checks
 
+## [0.1.1] - 2024-12-19
+
+### Fixed
+- **AsyncDipAnfrage**: Fixed critical bugs in async client
+  - Fixed `_make_request()` returning `None` for cached data
+  - Fixed context manager issues with aiohttp responses
+  - Fixed rate limiting compatibility with aiohttp responses
+  - Improved error handling and response management
+- **Notebooks**: Enhanced and fixed all tutorial notebooks
+  - Fixed async problems in `05_async_api_tutorial.ipynb`
+  - Added comprehensive error handling and fallback mechanisms
+  - Improved performance testing and documentation
+  - Updated API key handling across all notebooks
+
+### Enhanced
+- **Tutorial Notebooks**: Major improvements to all 6 tutorial notebooks
+  - `02_filtering_and_search.ipynb`: Extended with comprehensive search examples
+  - `03_batch_operations_and_caching.ipynb`: Enhanced with practical batch examples
+  - `04_content_parsers.ipynb`: Added missing `parse_batch` methods and examples
+  - `05_async_api_tutorial.ipynb`: Fixed async issues and improved error handling
+  - `06_data_visualization.ipynb`: Significantly expanded with extensive visualization examples
+- **Code Quality**: Improved type annotations and error handling throughout codebase
+- **Documentation**: Updated all examples and documentation to reflect bug fixes
+
+### Technical
+- Fixed MockResponse implementation for proper async response handling
+- Improved connection management with proper `await response.release()` calls
+- Simplified rate limiting logic for better aiohttp compatibility
+- Enhanced type safety with `Optional[Any]` return types
+
 ## [0.1.0] - 2024-01-XX
 
 ### Added
