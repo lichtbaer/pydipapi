@@ -329,7 +329,8 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             List[dict]: A list of matching persons.
         """
         try:
-            result = await self._fetch_paginated_data('person', anzahl, q=name)
+            # Use f.person parameter for name-based search according to API documentation
+            result = await self._fetch_paginated_data('person', anzahl, **{'f.person': name})
             return result or []
         except Exception as e:
             logger.error(f"Error searching persons by name: {e}")

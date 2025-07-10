@@ -300,7 +300,8 @@ class DipAnfrage(BaseApiClient):
         Returns:
             List[dict]: List of matching persons.
         """
-        result = self.get_person(anzahl=anzahl, titel=name)
+        # Use f.person parameter for name-based search according to API documentation
+        result = self._fetch_paginated_data('person', anzahl, **{'f.person': name})
         return result or []
 
     def get_documents_by_type(self, doc_type: str, anzahl: int = 20, **filters) -> List[dict]:
