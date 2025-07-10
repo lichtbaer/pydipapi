@@ -27,6 +27,21 @@ class BaseParser:
             return [self._parse_single(item) for item in data]
         return self._parse_single(data)
 
+    def parse_batch(self, data_list: List[Dict]) -> List[Dict]:
+        """
+        Parse a batch of items and return structured information for each.
+
+        Args:
+            data_list: List of raw API response data items
+
+        Returns:
+            List of parsed structured data
+        """
+        if not isinstance(data_list, list):
+            raise ValueError("parse_batch requires a list of dictionaries")
+
+        return [self._parse_single(item) for item in data_list]
+
     def _parse_single(self, data: Dict) -> Dict:
         """Parse a single item."""
         return {"parsed": data}

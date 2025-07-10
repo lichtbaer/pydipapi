@@ -361,7 +361,7 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
         """
         try:
             filters['q'] = query
-            result = await self._fetch_paginated_data('search', anzahl, **filters)
+            result = await self._fetch_paginated_data('drucksache', anzahl, **filters)
             return result or []
         except Exception as e:
             logger.error(f"Error searching documents: {e}")

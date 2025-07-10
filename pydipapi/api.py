@@ -317,14 +317,10 @@ class DipAnfrage(BaseApiClient):
             List[dict]: List of matching documents.
         """
         logger.info(f"Searching documents with query: '{query}', count: {anzahl}, filters: {filters}")
-        self.documents = []
         filters['q'] = query
-        url = self._build_url("drucksache", anzahl=anzahl, **filters)
-        data = self._make_request(url)
-        if data:
-            self.documents = data.get('documents', [])
-        logger.info(f"Retrieved {len(self.documents)} documents from search")
-        return self.documents
+        result = self._fetch_paginated_data('drucksache', anzahl, **filters)
+        logger.info(f"Retrieved {len(result or [])} documents from search")
+        return result or []
 
     def get_recent_activities(self, days: int = 7, anzahl: int = 20) -> List[dict]:
         """
