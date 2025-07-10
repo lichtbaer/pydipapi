@@ -238,7 +238,7 @@ pip install -r requirements.txt
 pip install -e .
 
 # Install development dependencies
-pip install pytest pytest-cov ruff bandit
+pip install -e .[dev]
 ```
 
 ### Running Tests
@@ -254,6 +254,11 @@ pytest --cov=pydipapi
 pytest tests/test_api.py
 pytest tests/test_async_api.py
 pytest tests/test_parsers.py
+
+# Or use Make commands
+make test          # Run tests
+make test-cov      # Run with coverage
+make quality       # Run all quality checks
 ```
 
 ### Code Quality
@@ -267,6 +272,65 @@ bandit -r pydipapi/
 
 # Type checking
 mypy pydipapi/
+
+# Or use Make commands
+make lint          # Run linting
+make format        # Format code
+make security      # Security checks
+make typecheck     # Type checking
+```
+
+### Release Testing
+
+```bash
+# Test the complete release pipeline locally
+make release-check
+
+# Or use the test script
+./scripts/test_release.sh
+```
+
+## 🚀 CI/CD Pipeline
+
+This project uses GitHub Actions for automated testing, building, and publishing:
+
+### Workflows
+
+- **CI Pipeline**: Runs on every push and PR
+  - ✅ Multi-Python version testing (3.8-3.12)
+  - ✅ Cross-platform testing (Ubuntu, Windows, macOS)
+  - ✅ Code quality checks (Ruff, Bandit, MyPy)
+  - ✅ Security scanning
+  - ✅ Documentation building
+
+- **Release Pipeline**: Triggered by version tags
+  - 🏗️ Package building and validation
+  - 📦 Automatic PyPI publishing
+  - 📋 GitHub releases with changelog
+  - 📚 Documentation deployment
+
+- **Dependency Management**: Automated with Dependabot
+  - 🔄 Weekly dependency updates
+  - 🤖 Auto-merge for patch/minor updates
+  - 🔒 Security vulnerability alerts
+
+### Creating a Release
+
+```bash
+# 1. Update version and changelog
+# 2. Commit changes
+git add .
+git commit -m "Prepare release v1.0.0"
+
+# 3. Create and push tag
+git tag v1.0.0
+git push origin v1.0.0
+
+# 4. GitHub Actions will automatically:
+#    - Run full test suite
+#    - Build package
+#    - Create GitHub release
+#    - Publish to PyPI
 ```
 
 ## 🤝 Contributing
