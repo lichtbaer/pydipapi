@@ -3,6 +3,7 @@
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![PyPI version](https://badge.fury.io/py/pydipapi.svg)](https://badge.fury.io/py/pydipapi)
+[![Documentation](https://img.shields.io/badge/docs-latest-brightgreen.svg)](https://lichtbaer.github.io/pydipapi/)
 
 **PyDipAPI** is a modern, feature-rich Python client for the German Bundestag (Parliament) API. It provides easy access to parliamentary data including members, documents, protocols, and activities with advanced features like async support, content parsing, and intelligent caching.
 
@@ -302,7 +303,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙋 Support
 
-- **Documentation**: [Read the Docs](https://pydipapi.readthedocs.io/)
+- **Documentation**: [https://lichtbaer.github.io/pydipapi/](https://lichtbaer.github.io/pydipapi/)
 - **Issues**: [GitHub Issues](https://github.com/lichtbaer/pydipapi/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/lichtbaer/pydipapi/discussions)
 
@@ -316,4 +317,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Made with ❤️ for the Python and open government data communities**
 
-[🇩🇪 Deutsche Version](README_DE.md) | [📚 Documentation](https://pydipapi.readthedocs.io/) | [🐛 Report Bug](https://github.com/lichtbaer/pydipapi/issues) | [💡 Request Feature](https://github.com/lichtbaer/pydipapi/issues) 
+[🇩🇪 Deutsche Version](README_DE.md) | [📚 Documentation](https://lichtbaer.github.io/pydipapi/) | [🐛 Report Bug](https://github.com/lichtbaer/pydipapi/issues) | [💡 Request Feature](https://github.com/lichtbaer/pydipapi/issues) 
