@@ -18,10 +18,18 @@ from .parsers import (
     ProtocolParser,
 )
 from .type import (
-    Person as Person,
-    Document as Document,
     Activity as Activity,
+)
+from .type import (
+    Document as Document,
+)
+from .type import (
+    Person as Person,
+)
+from .type import (
     Protocol as Protocol,
+)
+from .type import (
     Vorgangspositionbezug,
 )
 

@@ -3,8 +3,8 @@ Shared pagination helpers for DIP API clients.
 """
 from __future__ import annotations
 
-from typing import Any, Awaitable, Callable, Dict, List, Optional
 import logging
+from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 

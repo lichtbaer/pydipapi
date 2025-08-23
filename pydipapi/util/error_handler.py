@@ -4,6 +4,7 @@ Error handling utilities for the DIP API client.
 
 
 from typing import Any
+
 import requests
 
 
