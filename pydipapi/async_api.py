@@ -10,6 +10,7 @@ from pydantic import parse_obj_as
 from .client.async_client import AsyncBaseApiClient
 from .type import Vorgangspositionbezug
 from .util import redact_query_params
+from .client.pagination import fetch_paginated_async
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +38,20 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             cache_ttl (int): Cache time to live in seconds.
         """
         super().__init__(api_key, base_url, rate_limit_delay, max_retries, enable_cache, cache_ttl)
+
+    def _build_url(self, endpoint: str, **kwargs) -> str:
+        """
+        Build a URL for the given endpoint with parameters including API key.
+
+        Args:
+            endpoint (str): The API endpoint.
+            **kwargs: Query parameters.
+
+        Returns:
+            str: The complete URL including API key.
+        """
+        kwargs['apikey'] = self.api_key
+        return super()._build_url(endpoint, **kwargs)
 
     async def _make_request(self, url: str) -> Optional[dict]:
         """
@@ -70,45 +85,7 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
         Returns:
             List[Dict[str, Any]]: List of documents.
         """
-        logger.debug(f"Fetching async paginated data from endpoint: {endpoint}, count: {count}, params: {params}")
-        documents = []
-        cursor = ""
-
-        while len(documents) < count:
-            # Add cursor to parameters if we have one
-            if cursor:
-                params['cursor'] = cursor
-
-            url = self._build_url(endpoint, **params)
-            logger.debug(f"Making async request to URL: {url}")
-
-            data = await self._make_request(url)
-            if data is None:
-                logger.error("No response received from async _make_request")
-                break
-
-            logger.debug(f"Response data type: {type(data)}")
-            logger.debug(f"Response data keys: {list(data.keys()) if isinstance(data, dict) else 'Not a dict'}")
-
-            if not data:
-                logger.warning("Empty response data")
-                break
-
-            new_documents = data.get('documents', []) if isinstance(data, dict) else []
-            logger.debug(f"Retrieved {len(new_documents)} new documents")
-            documents.extend(new_documents)
-
-            # Update cursor for next page
-            cursor = data.get('cursor', '') if isinstance(data, dict) else ''
-            logger.debug(f"Next cursor: {cursor}")
-
-            # If no more documents or no cursor, break
-            if not new_documents or not cursor:
-                logger.debug("No more documents or no cursor, stopping pagination")
-                break
-
-        logger.info(f"Total documents retrieved: {len(documents)}")
-        return documents[:count]
+        return await fetch_paginated_async(self._build_url, self._make_request, endpoint, count, **params)
 
     async def get_person(self, anzahl: int = 100, **filters) -> List[dict]:
         """

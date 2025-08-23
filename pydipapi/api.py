@@ -9,6 +9,7 @@ from pydantic import parse_obj_as
 from .client.base_client import BaseApiClient
 from .type import Vorgangspositionbezug
 from .util import redact_query_params
+from .client.pagination import fetch_paginated_sync
 
 logger = logging.getLogger(__name__)
 
@@ -449,45 +450,7 @@ class DipAnfrage(BaseApiClient):
         Returns:
             List[Dict[str, Any]]: List of documents.
         """
-        logger.debug(f"Fetching paginated data from endpoint: {endpoint}, count: {count}, params: {params}")
-        documents = []
-        cursor = ""
-
-        while len(documents) < count:
-            # Add cursor to parameters if we have one
-            if cursor:
-                params['cursor'] = cursor
-
-            url = self._build_url(endpoint, **params)
-            logger.debug(f"Making request to URL: {url}")
-
-            data = self._make_request(url)
-            if data is None:
-                logger.error("No response received from _make_request")
-                break
-
-            logger.debug(f"Response data type: {type(data)}")
-            logger.debug(f"Response data keys: {list(data.keys()) if isinstance(data, dict) else 'Not a dict'}")
-
-            if not data:
-                logger.warning("Empty response data")
-                break
-
-            new_documents = data.get('documents', []) if isinstance(data, dict) else []
-            logger.debug(f"Retrieved {len(new_documents)} new documents")
-            documents.extend(new_documents)
-
-            # Update cursor for next page
-            cursor = data.get('cursor', '') if isinstance(data, dict) else ''
-            logger.debug(f"Next cursor: {cursor}")
-
-            # If no more documents or no cursor, break
-            if not new_documents or not cursor:
-                logger.debug("No more documents or no cursor, stopping pagination")
-                break
-
-        logger.info(f"Total documents retrieved: {len(documents)}")
-        return documents[:count]
+        return fetch_paginated_sync(self._build_url, self._make_request, endpoint, count, **params)
 
     def get_aktivitaet_by_id(self, id: int) -> Optional[dict]:
         """
