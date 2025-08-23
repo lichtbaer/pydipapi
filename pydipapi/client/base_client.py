@@ -68,11 +68,11 @@ class BaseApiClient:
             if cached_data:
                 logger.debug("Returning cached response")
                 # Create a mock response object with cached data
-                response = requests.Response()
-                response.status_code = 200
-                response._content = cached_data.get('content', b'{}')
-                response.headers = cached_data.get('headers', {})
-                return response
+                cached_response = requests.Response()
+                cached_response.status_code = 200
+                cached_response._content = cached_data.get('content', b'{}')
+                cached_response.headers = cached_data.get('headers', {})
+                return cached_response
 
         attempt = 0
         response: Optional[requests.Response] = None

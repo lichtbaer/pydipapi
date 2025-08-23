@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional
 
 import aiohttp
 import json
-from typing import Protocol, runtime_checkable, cast
+from typing import cast
 
 from ..util.cache import SimpleCache
 from ..util.error_handler import is_rate_limited, should_retry
@@ -50,13 +50,6 @@ class AsyncBaseApiClient:
                 timeout=aiohttp.ClientTimeout(total=30)
             )
         return self._session
-
-@runtime_checkable
-class _ResponseLike(Protocol):
-    status: int
-    async def json(self) -> Dict[str, Any]: ...
-    async def text(self) -> str: ...
-    headers: Dict[str, Any]
 
     async def _make_request(self, url: str, params: Optional[Dict[str, Any]] = None,
                        use_cache: bool = True) -> Optional[aiohttp.ClientResponse]:
@@ -104,7 +97,7 @@ class _ResponseLike(Protocol):
                         data_json = json.loads(cached_data['content'].decode('utf-8'))
                     except Exception:
                         data_json = None
-                cached_resp: _ResponseLike = _CachedResponse(data_json, cached_data.get('headers', {}))
+                cached_resp = _CachedResponse(data_json, cached_data.get('headers', {}))
                 return cast(Optional[aiohttp.ClientResponse], cached_resp)
 
         session = await self._get_session()
@@ -178,7 +171,7 @@ class _ResponseLike(Protocol):
                             pass
 
                     logger.debug(f"Request successful - status: {response.status}")
-                    return cast(aiohttp.ClientResponse, response)
+                    return response
 
             except aiohttp.ClientError as e:
                 logger.error(f"ClientError on attempt {attempt + 1}: {e}")
@@ -201,7 +194,7 @@ class _ResponseLike(Protocol):
         logger.error(f"Params: {params}")
         return None
 
-    def _build_url(self, endpoint: str, **kwargs) -> str:
+    def _build_url(self, endpoint: str, **kwargs: Any) -> str:
         """
         Build a URL for the given endpoint with optional parameters.
 
@@ -252,15 +245,15 @@ class _ResponseLike(Protocol):
             return documents[0] if documents else None
         return None
 
-    async def close(self):
+    async def close(self) -> None:
         """Close the aiohttp session."""
         if self._session and not self._session.closed:
             await self._session.close()
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> 'AsyncBaseApiClient':
         """Async context manager entry."""
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """Async context manager exit."""
         await self.close()

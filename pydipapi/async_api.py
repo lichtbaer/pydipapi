@@ -3,7 +3,7 @@ Async API client for the German Bundestag DIP API.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 from pydantic import parse_obj_as
 
@@ -11,6 +11,9 @@ from .client.async_client import AsyncBaseApiClient
 from .type import Vorgangspositionbezug
 from .util import redact_query_params
 from .client.pagination import fetch_paginated_async
+
+if TYPE_CHECKING:  # for forward-ref type hints only
+	from .type import Person, Document, Activity
 
 logger = logging.getLogger(__name__)
 
@@ -122,7 +125,8 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             url = self._build_url('person', f_id=ids)
             data = await self._request_json(url)
             if data and 'documents' in data:
-                return data['documents']
+                docs = data['documents']
+                return docs if isinstance(docs, list) else []
             return []
         except Exception as e:
             logger.error(f"Error fetching person IDs: {e}")
@@ -145,7 +149,8 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             url = self._build_url('aktivitaet', f_id=ids)
             data = await self._request_json(url)
             if data and 'documents' in data:
-                return data['documents']
+                docs = data['documents']
+                return docs if isinstance(docs, list) else []
             return []
         except Exception as e:
             logger.error(f"Error fetching activity IDs: {e}")
@@ -170,7 +175,8 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             url = self._build_url(endpoint, f_id=ids)
             data = await self._request_json(url)
             if data and 'documents' in data:
-                return data['documents']
+                docs = data['documents']
+                return docs if isinstance(docs, list) else []
             return []
         except Exception as e:
             logger.error(f"Error fetching document IDs: {e}")
@@ -195,7 +201,8 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             url = self._build_url(endpoint, f_id=ids)
             data = await self._request_json(url)
             if data and 'documents' in data:
-                return data['documents']
+                docs = data['documents']
+                return docs if isinstance(docs, list) else []
             return []
         except Exception as e:
             logger.error(f"Error fetching protocol IDs: {e}")
@@ -218,7 +225,8 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             url = self._build_url('vorgang', f_id=ids)
             data = await self._request_json(url)
             if data and 'documents' in data:
-                return data['documents']
+                docs = data['documents']
+                return docs if isinstance(docs, list) else []
             return []
         except Exception as e:
             logger.error(f"Error fetching proceeding IDs: {e}")
@@ -241,7 +249,8 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             url = self._build_url('vorgangsposition', f_id=ids)
             data = await self._request_json(url)
             if data and 'documents' in data:
-                return data['documents']
+                docs = data['documents']
+                return docs if isinstance(docs, list) else []
             return []
         except Exception as e:
             logger.error(f"Error fetching proceeding position IDs: {e}")
@@ -503,7 +512,6 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
         """
         Retrieve persons and return typed models (async).
         """
-        from .type import Person
         raw = await self.get_person(anzahl=anzahl, **filters)
         return parse_obj_as(List[Person], raw)
 
@@ -511,7 +519,6 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
         """
         Retrieve documents and return typed models (async).
         """
-        from .type import Document
         raw = await self.get_drucksache(anzahl=anzahl, **filters)
         return parse_obj_as(List[Document], raw)
 
@@ -519,6 +526,5 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
         """
         Retrieve activities and return typed models (async).
         """
-        from .type import Activity
         raw = await self.get_aktivitaet(anzahl=anzahl, **filters)
         return parse_obj_as(List[Activity], raw)
