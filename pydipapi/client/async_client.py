@@ -3,12 +3,11 @@ Async client for the DIP API with rate limiting, retry logic, and caching.
 """
 
 import asyncio
+import json
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 
 import aiohttp
-import json
-from typing import cast
 
 from ..util.cache import SimpleCache
 from ..util.error_handler import is_rate_limited, should_retry
@@ -167,8 +166,7 @@ class AsyncBaseApiClient:
                             }
                             self.cache.set(url, cache_data, params)
                         except Exception:
-                            # Fallback: ignore cache write errors silently (already logged by cache)
-                            pass
+                            logger.exception("Failed to write response to cache")
 
                     logger.debug(f"Request successful - status: {response.status}")
                     return response

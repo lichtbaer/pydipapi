@@ -3,17 +3,17 @@ Async API client for the German Bundestag DIP API.
 """
 
 import logging
-from typing import Any, Dict, List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from pydantic import parse_obj_as
 
 from .client.async_client import AsyncBaseApiClient
+from .client.pagination import fetch_paginated_async
 from .type import Vorgangspositionbezug
 from .util import redact_query_params
-from .client.pagination import fetch_paginated_async
 
 if TYPE_CHECKING:  # for forward-ref type hints only
-	from .type import Person, Document, Activity
+    from .type import Activity, Document, Person
 
 logger = logging.getLogger(__name__)
 

@@ -1,18 +1,17 @@
 # Utility package for pydipapi
+from typing import Iterable
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 # Re-export selected error utilities for convenience
 from .error_handler import handle_api_error, is_rate_limited, should_retry  # noqa: F401
 from .error_handling import (  # noqa: F401
-	DipApiConnectionError,
-	DipApiError,
-	DipApiHttpError,
-	handle_api_response,
-	validate_api_key,
+    DipApiConnectionError,
+    DipApiError,
+    DipApiHttpError,
+    handle_api_response,
+    validate_api_key,
 )
 
-
-from typing import Iterable
 
 def redact_query_params(url: str, keys_to_redact: Iterable[str] = ("apikey",)) -> str:
     """

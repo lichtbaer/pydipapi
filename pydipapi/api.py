@@ -7,10 +7,12 @@ from typing import Any, Dict, List, Optional
 from pydantic import parse_obj_as
 
 from .client.base_client import BaseApiClient
+from .client.pagination import fetch_paginated_sync
+from .type import Activity as ActivityModel
+from .type import Document as DocumentModel
+from .type import Person as PersonModel
 from .type import Vorgangspositionbezug
 from .util import redact_query_params
-from .client.pagination import fetch_paginated_sync
-from .type import Person as PersonModel, Document as DocumentModel, Activity as ActivityModel
 
 logger = logging.getLogger(__name__)
 
