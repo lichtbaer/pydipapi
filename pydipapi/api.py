@@ -10,6 +10,7 @@ from .client.base_client import BaseApiClient
 from .type import Vorgangspositionbezug
 from .util import redact_query_params
 from .client.pagination import fetch_paginated_sync
+from .type import Person as PersonModel, Document as DocumentModel, Activity as ActivityModel
 
 logger = logging.getLogger(__name__)
 
@@ -124,6 +125,20 @@ class DipAnfrage(BaseApiClient):
         except Exception as e:
             logger.error(f"Error fetching persons: {e}")
             return []
+
+    def get_person_typed(self, anzahl: int = 100, **filters) -> List[PersonModel]:
+        """
+        Retrieve persons and return typed models.
+
+        Args:
+            anzahl: Number of persons to retrieve.
+            **filters: Query filters.
+
+        Returns:
+            List of Person models.
+        """
+        raw = self.get_person(anzahl=anzahl, **filters)
+        return parse_obj_as(List[PersonModel], raw)
 
     def get_person_ids(self, ids: List[int]) -> List[dict]:
         """
@@ -366,6 +381,13 @@ class DipAnfrage(BaseApiClient):
         except Exception:
             return []
 
+    def get_aktivitaet_typed(self, anzahl: int = 100, **filters) -> List[ActivityModel]:
+        """
+        Retrieve activities and return typed models.
+        """
+        raw = self.get_aktivitaet(anzahl=anzahl, **filters)
+        return parse_obj_as(List[ActivityModel], raw)
+
     def get_drucksache(self, anzahl: int = 10, text: bool = True, **filters) -> List[dict]:
         """
         Retrieve a list of documents (Drucksache) from the API.
@@ -384,6 +406,13 @@ class DipAnfrage(BaseApiClient):
             return result or []
         except Exception:
             return []
+
+    def get_drucksache_typed(self, anzahl: int = 100, **filters) -> List[DocumentModel]:
+        """
+        Retrieve documents and return typed models.
+        """
+        raw = self.get_drucksache(anzahl=anzahl, **filters)
+        return parse_obj_as(List[DocumentModel], raw)
 
     def get_plenarprotokoll(self, anzahl: int = 10, text: bool = True, **filters) -> List[dict]:
         """

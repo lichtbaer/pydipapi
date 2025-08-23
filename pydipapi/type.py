@@ -79,3 +79,53 @@ class Zuordnung(str, Enum):
     BR = "BR"
     BV = "BV"
     EK = "EK"
+
+
+# New domain models
+class Person(BaseModel):
+    """
+    Typed representation of a person (parliament member).
+    """
+    id: Optional[constr(strict=True, pattern=r'^\d+$')] = Field(None, description="DIP person ID")
+    name: Optional[str] = Field(None, description="Full name")
+    vorname: Optional[str] = Field(None, description="First name")
+    nachname: Optional[str] = Field(None, description="Last name")
+    titel: Optional[str] = Field(None, description="Title e.g. Dr.")
+    fraktion: Optional[str] = Field(None, description="Parliamentary group")
+    partei: Optional[str] = Field(None, description="Party")
+    wahlkreis: Optional[str] = Field(None, description="Constituency")
+    email: Optional[str] = Field(None, description="Email address")
+
+
+class Document(BaseModel):
+    """
+    Typed representation of a document (Drucksache).
+    """
+    id: Optional[constr(strict=True, pattern=r'^\d+$')] = Field(None, description="DIP document ID")
+    titel: Optional[str] = Field(None, description="Title")
+    dokumentart: Optional[str] = Field(None, description="Document type raw")
+    datum: Optional[date] = Field(None, description="Publication date")
+    text: Optional[str] = Field(None, description="Extract or full text if available")
+
+
+class Activity(BaseModel):
+    """
+    Typed representation of an activity (Aktivität / Plenarereignis).
+    """
+    id: Optional[constr(strict=True, pattern=r'^\d+$')] = Field(None, description="DIP activity ID")
+    titel: Optional[str] = Field(None, description="Activity title")
+    sitzungsnummer: Optional[str] = Field(None, description="Session number")
+    wahlperiode: Optional[int] = Field(None, description="Legislative period")
+    sitzungsdatum: Optional[date] = Field(None, description="Session date")
+    beschreibung: Optional[str] = Field(None, description="Description")
+
+
+class Protocol(BaseModel):
+    """
+    Typed representation of a plenary protocol (Plenarprotokoll).
+    """
+    id: Optional[constr(strict=True, pattern=r'^\d+$')] = Field(None, description="DIP protocol ID")
+    situngsnummer: Optional[str] = Field(None, description="Session number")
+    wahlperiode: Optional[int] = Field(None, description="Legislative period")
+    sitzungsdatum: Optional[date] = Field(None, description="Session date")
+    text: Optional[str] = Field(None, description="Protocol text")

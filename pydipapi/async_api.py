@@ -499,3 +499,27 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
         """Clear expired cache entries."""
         if self.cache:
             self.cache.clear_expired()
+
+    async def get_person_typed(self, anzahl: int = 100, **filters) -> List["PersonModel"]:
+        """
+        Retrieve persons and return typed models (async).
+        """
+        from .type import Person as PersonModel  # local import to avoid cycles
+        raw = await self.get_person(anzahl=anzahl, **filters)
+        return parse_obj_as(List[PersonModel], raw)
+
+    async def get_drucksache_typed(self, anzahl: int = 100, **filters) -> List["DocumentModel"]:
+        """
+        Retrieve documents and return typed models (async).
+        """
+        from .type import Document as DocumentModel
+        raw = await self.get_drucksache(anzahl=anzahl, **filters)
+        return parse_obj_as(List[DocumentModel], raw)
+
+    async def get_aktivitaet_typed(self, anzahl: int = 100, **filters) -> List["ActivityModel"]:
+        """
+        Retrieve activities and return typed models (async).
+        """
+        from .type import Activity as ActivityModel
+        raw = await self.get_aktivitaet(anzahl=anzahl, **filters)
+        return parse_obj_as(List[ActivityModel], raw)
