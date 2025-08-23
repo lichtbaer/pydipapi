@@ -53,24 +53,17 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
         kwargs['apikey'] = self.api_key
         return super()._build_url(endpoint, **kwargs)
 
-    async def _make_request(self, url: str, params: Optional[Dict[str, Any]] = None, use_cache: bool = True) -> Optional[dict]:
+    async def _request_json(self, url: str) -> Optional[Dict[str, Any]]:
         """
-        Make an async API request and return JSON data.
-
-        Args:
-            url (str): The URL to request.
-            params (Optional[Dict[str, Any]]): Query parameters (unused; included in URL).
-            use_cache (bool): Whether to use caching.
-
-        Returns:
-            Optional[dict]: The JSON response data or None if failed.
+        Perform the HTTP request and return parsed JSON data.
         """
         try:
             logger.debug(f"Async wrapper making request to: {redact_query_params(url)}")
-            response = await super()._make_request(url, params=params, use_cache=use_cache)
+            response = await self._make_request(url)
             if response is None:
                 return None
-            return await response.json()
+            data = await response.json()
+            return data if isinstance(data, dict) else None
         except Exception as e:
             logger.error(f"Error making async request to {url}: {e}")
             return None
@@ -87,7 +80,11 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
         Returns:
             List[Dict[str, Any]]: List of documents.
         """
-        return await fetch_paginated_async(self._build_url, self._make_request, endpoint, count, **params)
+        return await fetch_paginated_async(self._build_url, self._request_json, endpoint, count, **params)
+
+    async def _fetch_single_item(self, endpoint: str, item_id: int) -> Optional[Dict[str, Any]]:
+        url = f"{self.base_url}/{endpoint}/{item_id}/"
+        return await self._request_json(url)
 
     async def get_person(self, anzahl: int = 100, **filters) -> List[dict]:
         """
@@ -123,7 +120,7 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
         try:
             # Use batch endpoint if available, otherwise fetch individually
             url = self._build_url('person', f_id=ids)
-            data = await self._make_request(url)
+            data = await self._request_json(url)
             if data and 'documents' in data:
                 return data['documents']
             return []
@@ -146,7 +143,7 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
 
         try:
             url = self._build_url('aktivitaet', f_id=ids)
-            data = await self._make_request(url)
+            data = await self._request_json(url)
             if data and 'documents' in data:
                 return data['documents']
             return []
@@ -171,7 +168,7 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
         try:
             endpoint = 'drucksache-text' if text else 'drucksache'
             url = self._build_url(endpoint, f_id=ids)
-            data = await self._make_request(url)
+            data = await self._request_json(url)
             if data and 'documents' in data:
                 return data['documents']
             return []
@@ -196,7 +193,7 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
         try:
             endpoint = 'plenarprotokoll-text' if text else 'plenarprotokoll'
             url = self._build_url(endpoint, f_id=ids)
-            data = await self._make_request(url)
+            data = await self._request_json(url)
             if data and 'documents' in data:
                 return data['documents']
             return []
@@ -219,7 +216,7 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
 
         try:
             url = self._build_url('vorgang', f_id=ids)
-            data = await self._make_request(url)
+            data = await self._request_json(url)
             if data and 'documents' in data:
                 return data['documents']
             return []
@@ -242,7 +239,7 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
 
         try:
             url = self._build_url('vorgangsposition', f_id=ids)
-            data = await self._make_request(url)
+            data = await self._request_json(url)
             if data and 'documents' in data:
                 return data['documents']
             return []
@@ -502,26 +499,26 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
         if self.cache:
             self.cache.clear_expired()
 
-    async def get_person_typed(self, anzahl: int = 100, **filters) -> List["PersonModel"]:
+    async def get_person_typed(self, anzahl: int = 100, **filters) -> List['Person']:
         """
         Retrieve persons and return typed models (async).
         """
-        from .type import Person as PersonModel  # local import to avoid cycles
+        from .type import Person
         raw = await self.get_person(anzahl=anzahl, **filters)
-        return parse_obj_as(List[PersonModel], raw)
+        return parse_obj_as(List[Person], raw)
 
-    async def get_drucksache_typed(self, anzahl: int = 100, **filters) -> List["DocumentModel"]:
+    async def get_drucksache_typed(self, anzahl: int = 100, **filters) -> List['Document']:
         """
         Retrieve documents and return typed models (async).
         """
-        from .type import Document as DocumentModel
+        from .type import Document
         raw = await self.get_drucksache(anzahl=anzahl, **filters)
-        return parse_obj_as(List[DocumentModel], raw)
+        return parse_obj_as(List[Document], raw)
 
-    async def get_aktivitaet_typed(self, anzahl: int = 100, **filters) -> List["ActivityModel"]:
+    async def get_aktivitaet_typed(self, anzahl: int = 100, **filters) -> List['Activity']:
         """
         Retrieve activities and return typed models (async).
         """
-        from .type import Activity as ActivityModel
+        from .type import Activity
         raw = await self.get_aktivitaet(anzahl=anzahl, **filters)
-        return parse_obj_as(List[ActivityModel], raw)
+        return parse_obj_as(List[Activity], raw)

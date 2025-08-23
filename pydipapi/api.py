@@ -40,21 +40,19 @@ class DipAnfrage(BaseApiClient):
         super().__init__(api_key, base_url, rate_limit_delay, max_retries, enable_cache, cache_ttl)
         self.documents: List[Dict[str, Any]] = []
 
-    def _make_request(self, url: str, params: Optional[Dict[str, Any]] = None, use_cache: bool = True) -> Optional[Dict[str, Any]]:
+    def _request_json(self, url: str) -> Optional[Dict[str, Any]]:
         """
         Make a request and return the parsed JSON data.
 
         Args:
             url (str): The URL to request.
-            params (Optional[Dict[str, Any]]): Query parameters (unused here; URL includes them).
-            use_cache (bool): Whether to use caching.
 
         Returns:
             Optional[dict]: The parsed JSON response or None if failed.
         """
         logger.debug(f"Making request to: {redact_query_params(url)}")
 
-        response = super()._make_request(url, params=params, use_cache=use_cache)
+        response = super()._make_request(url)
 
         if response is None:
             logger.error(f"Request failed - no response received for URL: {redact_query_params(url)}")
@@ -86,7 +84,7 @@ class DipAnfrage(BaseApiClient):
             Optional[Dict[str, Any]]: The item data or None if not found.
         """
         url = f"{self.base_url}/{endpoint}/{item_id}/"
-        data = self._make_request(url)
+        data = self._request_json(url)
         if data is None:
             return None
         if data and 'documents' in data:
@@ -156,7 +154,7 @@ class DipAnfrage(BaseApiClient):
         logger.info(f"Fetching persons by IDs: {ids}")
         self.documents = []
         url = self._build_url("person", f_id=ids)
-        data = self._make_request(url)
+        data = self._request_json(url)
         if data:
             self.documents = data.get('documents', [])
         logger.info(f"Retrieved {len(self.documents)} persons")
@@ -175,7 +173,7 @@ class DipAnfrage(BaseApiClient):
         logger.info(f"Fetching activities by IDs: {ids}")
         self.documents = []
         url = self._build_url("aktivitaet", f_id=ids)
-        data = self._make_request(url)
+        data = self._request_json(url)
         if data:
             self.documents = data.get('documents', [])
         logger.info(f"Retrieved {len(self.documents)} activities")
@@ -196,7 +194,7 @@ class DipAnfrage(BaseApiClient):
         self.documents = []
         endpoint = 'drucksache-text' if text else 'drucksache'
         url = self._build_url(endpoint, f_id=ids)
-        data = self._make_request(url)
+        data = self._request_json(url)
         if data:
             self.documents = data.get('documents', [])
         logger.info(f"Retrieved {len(self.documents)} documents")
@@ -217,7 +215,7 @@ class DipAnfrage(BaseApiClient):
         self.documents = []
         endpoint = 'plenarprotokoll-text' if text else 'plenarprotokoll'
         url = self._build_url(endpoint, f_id=ids)
-        data = self._make_request(url)
+        data = self._request_json(url)
         if data:
             self.documents = data.get('documents', [])
         logger.info(f"Retrieved {len(self.documents)} plenary protocols")
@@ -236,7 +234,7 @@ class DipAnfrage(BaseApiClient):
         logger.info(f"Fetching proceedings by IDs: {ids}")
         self.documents = []
         url = self._build_url("vorgang", f_id=ids)
-        data = self._make_request(url)
+        data = self._request_json(url)
         if data:
             self.documents = data.get('documents', [])
         logger.info(f"Retrieved {len(self.documents)} proceedings")
@@ -255,7 +253,7 @@ class DipAnfrage(BaseApiClient):
         logger.info(f"Fetching proceeding positions by IDs: {ids}")
         self.documents = []
         url = self._build_url("vorgangsposition", f_id=ids)
-        data = self._make_request(url)
+        data = self._request_json(url)
         if data:
             self.documents = data.get('documents', [])
         logger.info(f"Retrieved {len(self.documents)} proceeding positions")
@@ -277,7 +275,7 @@ class DipAnfrage(BaseApiClient):
         self.documents = []
         filters['q'] = query
         url = self._build_url("drucksache", anzahl=anzahl, **filters)
-        data = self._make_request(url)
+        data = self._request_json(url)
         if data:
             self.documents = data.get('documents', [])
         logger.info(f"Retrieved {len(self.documents)} documents from search")
@@ -482,7 +480,7 @@ class DipAnfrage(BaseApiClient):
         Returns:
             List[Dict[str, Any]]: List of documents.
         """
-        return fetch_paginated_sync(self._build_url, self._make_request, endpoint, count, **params)
+        return fetch_paginated_sync(self._build_url, self._request_json, endpoint, count, **params)
 
     def get_aktivitaet_by_id(self, id: int) -> Optional[dict]:
         """

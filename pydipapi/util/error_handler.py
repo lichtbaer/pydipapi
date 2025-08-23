@@ -3,7 +3,7 @@ Error handling utilities for the DIP API client.
 """
 
 
-from typing import Protocol
+from typing import Any
 import requests
 
 
@@ -30,16 +30,12 @@ def handle_api_error(response: requests.Response) -> None:
         )
 
 
-class _HasStatus(Protocol):
-    status: int
-
-
-def is_rate_limited(response: _HasStatus) -> bool:
+def is_rate_limited(response: Any) -> bool:
     """
     Check if the response indicates rate limiting.
 
     Args:
-        response (_HasStatus): The response object.
+        response: The response object (requests or aiohttp).
 
     Returns:
         bool: True if rate limited, False otherwise.
@@ -51,12 +47,12 @@ def is_rate_limited(response: _HasStatus) -> bool:
     return int(code or 0) == 429
 
 
-def should_retry(response: _HasStatus, attempt: int, max_retries: int) -> bool:
+def should_retry(response: Any, attempt: int, max_retries: int) -> bool:
     """
     Determine if a request should be retried.
 
     Args:
-        response (_HasStatus): The response object.
+        response: The response object (requests or aiohttp).
         attempt (int): Current attempt number.
         max_retries (int): Maximum number of retries.
 
