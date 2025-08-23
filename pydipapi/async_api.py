@@ -53,19 +53,21 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
         kwargs['apikey'] = self.api_key
         return super()._build_url(endpoint, **kwargs)
 
-    async def _make_request(self, url: str) -> Optional[dict]:
+    async def _make_request(self, url: str, params: Optional[Dict[str, Any]] = None, use_cache: bool = True) -> Optional[dict]:
         """
         Make an async API request and return JSON data.
 
         Args:
             url (str): The URL to request.
+            params (Optional[Dict[str, Any]]): Query parameters (unused; included in URL).
+            use_cache (bool): Whether to use caching.
 
         Returns:
             Optional[dict]: The JSON response data or None if failed.
         """
         try:
             logger.debug(f"Async wrapper making request to: {redact_query_params(url)}")
-            response = await super()._make_request(url)
+            response = await super()._make_request(url, params=params, use_cache=use_cache)
             if response is None:
                 return None
             return await response.json()

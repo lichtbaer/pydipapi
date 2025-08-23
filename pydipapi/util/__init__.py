@@ -12,7 +12,9 @@ from .error_handling import (  # noqa: F401
 )
 
 
-def redact_query_params(url: str, keys_to_redact: list[str] | tuple[str, ...] = ("apikey",)) -> str:
+from typing import Iterable
+
+def redact_query_params(url: str, keys_to_redact: Iterable[str] = ("apikey",)) -> str:
     """
     Redact sensitive query parameters in a URL for safe logging.
 

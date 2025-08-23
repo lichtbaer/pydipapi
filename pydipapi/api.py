@@ -38,21 +38,23 @@ class DipAnfrage(BaseApiClient):
             cache_ttl (int): Cache time to live in seconds.
         """
         super().__init__(api_key, base_url, rate_limit_delay, max_retries, enable_cache, cache_ttl)
-        self.documents = []
+        self.documents: List[Dict[str, Any]] = []
 
-    def _make_request(self, url: str) -> Optional[dict]:
+    def _make_request(self, url: str, params: Optional[Dict[str, Any]] = None, use_cache: bool = True) -> Optional[dict]:
         """
         Make a request and return the parsed JSON data.
 
         Args:
             url (str): The URL to request.
+            params (Optional[Dict[str, Any]]): Query parameters (unused here; URL includes them).
+            use_cache (bool): Whether to use caching.
 
         Returns:
             Optional[dict]: The parsed JSON response or None if failed.
         """
         logger.debug(f"Making request to: {redact_query_params(url)}")
 
-        response = super()._make_request(url)
+        response = super()._make_request(url, params=params, use_cache=use_cache)
 
         if response is None:
             logger.error(f"Request failed - no response received for URL: {redact_query_params(url)}")

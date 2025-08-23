@@ -8,6 +8,7 @@ from typing import Any, Dict, Optional
 
 import aiohttp
 import json
+from typing import Protocol, runtime_checkable, cast
 
 from ..util.cache import SimpleCache
 from ..util.error_handler import is_rate_limited, should_retry
@@ -50,147 +51,156 @@ class AsyncBaseApiClient:
             )
         return self._session
 
-    async def _make_request(self, url: str, params: Optional[Dict[str, Any]] = None,
-                           use_cache: bool = True) -> Optional[aiohttp.ClientResponse]:
-        """
-        Make an async API request with rate limiting, retry logic, and optional caching.
+@runtime_checkable
+class _ResponseLike(Protocol):
+    status: int
+    async def json(self) -> Dict[str, Any]: ...
+    async def text(self) -> str: ...
+    headers: Dict[str, Any]
 
-        Args:
-            url (str): The URL to request.
-            params (Optional[Dict[str, Any]]): Query parameters.
-            use_cache (bool): Whether to use caching for this request.
+async def _make_request(self, url: str, params: Optional[Dict[str, Any]] = None,
+                       use_cache: bool = True) -> Optional[aiohttp.ClientResponse]:
+    """
+    Make an async API request with rate limiting, retry logic, and optional caching.
 
-        Returns:
-            aiohttp.ClientResponse: The response object.
+    Args:
+        url (str): The URL to request.
+        params (Optional[Dict[str, Any]]): Query parameters.
+        use_cache (bool): Whether to use caching for this request.
 
-        Raises:
-            aiohttp.ClientError: If the request fails after all retries.
-        """
-        logger.debug(f"Making async request to URL: {url}")
-        logger.debug(f"Parameters: {params}")
-        logger.debug(f"Use cache: {use_cache}")
+    Returns:
+        aiohttp.ClientResponse: The response object.
 
-        # Check cache first if enabled
-        if self.enable_cache and use_cache and self.cache:
-            cached_data = self.cache.get(url, params)
-            if cached_data:
-                logger.debug("Returning cached response")
-                class _CachedResponse:
-                    def __init__(self, data_json: Optional[Dict[str, Any]], headers: Dict[str, Any]):
-                        self._data_json = data_json or {}
-                        self.headers = headers or {}
-                        self.status = 200
+    Raises:
+        aiohttp.ClientError: If the request fails after all retries.
+    """
+    logger.debug(f"Making async request to URL: {url}")
+    logger.debug(f"Parameters: {params}")
+    logger.debug(f"Use cache: {use_cache}")
 
-                    async def json(self) -> Dict[str, Any]:
-                        return self._data_json
+    # Check cache first if enabled
+    if self.enable_cache and use_cache and self.cache:
+        cached_data = self.cache.get(url, params)
+        if cached_data:
+            logger.debug("Returning cached response")
+            class _CachedResponse:
+                def __init__(self, data_json: Optional[Dict[str, Any]], headers: Dict[str, Any]):
+                    self._data_json = data_json or {}
+                    self.headers = headers or {}
+                    self.status = 200
 
-                    async def text(self) -> str:
-                        return json.dumps(self._data_json)
+                async def json(self) -> Dict[str, Any]:
+                    return self._data_json
 
-                # Support both legacy 'content' bytes and new 'json' cache formats
-                data_json: Optional[Dict[str, Any]] = None
-                if 'json' in cached_data:
-                    data_json = cached_data.get('json')
-                elif 'content' in cached_data:
+                async def text(self) -> str:
+                    return json.dumps(self._data_json)
+
+            # Support both legacy 'content' bytes and new 'json' cache formats
+            data_json: Optional[Dict[str, Any]] = None
+            if 'json' in cached_data:
+                data_json = cached_data.get('json')
+            elif 'content' in cached_data:
+                try:
+                    data_json = json.loads(cached_data['content'].decode('utf-8'))
+                except Exception:
+                    data_json = None
+            cached_resp: _ResponseLike = _CachedResponse(data_json, cached_data.get('headers', {}))
+            # mypy: we're returning a compatible object; runtime users only use .json/.status
+            return cast(Optional[aiohttp.ClientResponse], cached_resp)  # type: ignore[return-value]
+
+    session = await self._get_session()
+    attempt = 0
+    response = None
+
+    while attempt <= self.max_retries:
+        try:
+            # Rate limiting delay
+            if attempt > 0:
+                delay = self.rate_limit_delay * attempt
+                logger.debug(f"Rate limiting delay: {delay}s (attempt {attempt})")
+                await asyncio.sleep(delay)  # Async sleep
+
+            logger.debug(f"Making async HTTP request (attempt {attempt + 1}/{self.max_retries + 1})")
+            async with session.get(url, params=params) as response:
+                logger.debug(f"Response status: {response.status}")
+                logger.debug(f"Response headers: {dict(response.headers)}")
+
+                # Check for rate limiting
+                if is_rate_limited(response):
+                    logger.warning(f"Rate limited - status: {response.status}")
+                    if attempt < self.max_retries:
+                        retry_after = int(response.headers.get('Retry-After', 60))
+                        logger.info(f"Waiting {retry_after}s before retry")
+                        await asyncio.sleep(retry_after)
+                        attempt += 1
+                        continue
+
+                # Handle other errors
+                try:
+                    # Convert aiohttp response to requests-like response for error handling
+                    response_text = await response.text()
+                    # We'll handle errors differently for async
+                    if response.status >= 400:
+                        raise aiohttp.ClientResponseError(
+                            request_info=response.request_info,
+                            history=response.history,
+                            status=response.status,
+                            message=f"HTTP {response.status}: {response.reason}"
+                        )
+                except Exception as e:
+                    logger.error(f"handle_api_error failed: {e}")
+                    logger.error(f"Response status: {response.status}")
+                    response_text = await response.text()
+                    logger.error(f"Response text: {response_text[:500]}...")
+
+                    # Provide specific guidance for common errors
+                    if response.status == 401:
+                        logger.error("Authentication failed. Please check your API key.")
+                        logger.error("You can get an API key from: https://dip.bundestag.de/über-dip/hilfe/api")
+                    elif response.status == 403:
+                        logger.error("Access forbidden. Your API key may not have the required permissions.")
+                    elif response.status == 429:
+                        logger.error("Rate limit exceeded. Please wait before making more requests.")
+
+                    raise e
+
+                # Cache successful responses (store JSON to be JSON-serializable)
+                if self.enable_cache and use_cache and self.cache and response.status == 200:
+                    logger.debug("Caching successful response")
                     try:
-                        data_json = json.loads(cached_data['content'].decode('utf-8'))
+                        response_json = await response.json()
+                        cache_data = {
+                            'json': response_json,
+                            'headers': dict(response.headers)
+                        }
+                        self.cache.set(url, cache_data, params)
                     except Exception:
-                        data_json = None
-                return _CachedResponse(data_json, cached_data.get('headers', {}))
+                        # Fallback: ignore cache write errors silently (already logged by cache)
+                        pass
 
-        session = await self._get_session()
-        attempt = 0
-        response = None
+                logger.debug(f"Request successful - status: {response.status}")
+                return response
 
-        while attempt <= self.max_retries:
-            try:
-                # Rate limiting delay
-                if attempt > 0:
-                    delay = self.rate_limit_delay * attempt
-                    logger.debug(f"Rate limiting delay: {delay}s (attempt {attempt})")
-                    await asyncio.sleep(delay)  # Async sleep
+        except aiohttp.ClientError as e:
+            logger.error(f"ClientError on attempt {attempt + 1}: {e}")
+            if attempt < self.max_retries and response and should_retry(response, attempt, self.max_retries):
+                logger.info(f"Retrying request (attempt {attempt + 1})")
+                attempt += 1
+                continue
+            raise e
+        except Exception as e:
+            logger.error(f"Unexpected exception on attempt {attempt + 1}: {e}")
+            if attempt < self.max_retries:
+                logger.info(f"Retrying request (attempt {attempt + 1})")
+                attempt += 1
+                continue
+            raise e
 
-                logger.debug(f"Making async HTTP request (attempt {attempt + 1}/{self.max_retries + 1})")
-                async with session.get(url, params=params) as response:
-                    logger.debug(f"Response status: {response.status}")
-                    logger.debug(f"Response headers: {dict(response.headers)}")
-
-                    # Check for rate limiting
-                    if is_rate_limited(response):
-                        logger.warning(f"Rate limited - status: {response.status}")
-                        if attempt < self.max_retries:
-                            retry_after = int(response.headers.get('Retry-After', 60))
-                            logger.info(f"Waiting {retry_after}s before retry")
-                            await asyncio.sleep(retry_after)
-                            attempt += 1
-                            continue
-
-                    # Handle other errors
-                    try:
-                        # Convert aiohttp response to requests-like response for error handling
-                        response_text = await response.text()
-                        # We'll handle errors differently for async
-                        if response.status >= 400:
-                            raise aiohttp.ClientResponseError(
-                                request_info=response.request_info,
-                                history=response.history,
-                                status=response.status,
-                                message=f"HTTP {response.status}: {response.reason}"
-                            )
-                    except Exception as e:
-                        logger.error(f"handle_api_error failed: {e}")
-                        logger.error(f"Response status: {response.status}")
-                        response_text = await response.text()
-                        logger.error(f"Response text: {response_text[:500]}...")
-
-                        # Provide specific guidance for common errors
-                        if response.status == 401:
-                            logger.error("Authentication failed. Please check your API key.")
-                            logger.error("You can get an API key from: https://dip.bundestag.de/über-dip/hilfe/api")
-                        elif response.status == 403:
-                            logger.error("Access forbidden. Your API key may not have the required permissions.")
-                        elif response.status == 429:
-                            logger.error("Rate limit exceeded. Please wait before making more requests.")
-
-                        raise e
-
-                    # Cache successful responses (store JSON to be JSON-serializable)
-                    if self.enable_cache and use_cache and self.cache and response.status == 200:
-                        logger.debug("Caching successful response")
-                        try:
-                            response_json = await response.json()
-                            cache_data = {
-                                'json': response_json,
-                                'headers': dict(response.headers)
-                            }
-                            self.cache.set(url, cache_data, params)
-                        except Exception:
-                            # Fallback: ignore cache write errors silently (already logged by cache)
-                            pass
-
-                    logger.debug(f"Request successful - status: {response.status}")
-                    return response
-
-            except aiohttp.ClientError as e:
-                logger.error(f"ClientError on attempt {attempt + 1}: {e}")
-                if attempt < self.max_retries and response and should_retry(response, attempt, self.max_retries):
-                    logger.info(f"Retrying request (attempt {attempt + 1})")
-                    attempt += 1
-                    continue
-                raise e
-            except Exception as e:
-                logger.error(f"Unexpected exception on attempt {attempt + 1}: {e}")
-                if attempt < self.max_retries:
-                    logger.info(f"Retrying request (attempt {attempt + 1})")
-                    attempt += 1
-                    continue
-                raise e
-
-        # If we get here, all retries failed
-        logger.error("Request failed after all retries")
-        logger.error(f"URL: {url}")
-        logger.error(f"Params: {params}")
-        return None
+    # If we get here, all retries failed
+    logger.error("Request failed after all retries")
+    logger.error(f"URL: {url}")
+    logger.error(f"Params: {params}")
+    return None
 
     def _build_url(self, endpoint: str, **kwargs) -> str:
         """

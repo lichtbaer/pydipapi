@@ -3,6 +3,7 @@ Error handling utilities for the DIP API client.
 """
 
 
+from typing import Protocol
 import requests
 
 
@@ -29,25 +30,33 @@ def handle_api_error(response: requests.Response) -> None:
         )
 
 
-def is_rate_limited(response: requests.Response) -> bool:
+class _HasStatus(Protocol):
+    status: int
+
+
+def is_rate_limited(response: _HasStatus) -> bool:
     """
     Check if the response indicates rate limiting.
 
     Args:
-        response (requests.Response): The response object.
+        response (_HasStatus): The response object.
 
     Returns:
         bool: True if rate limited, False otherwise.
     """
-    return response.status_code == 429
+    # requests.Response has .status_code, aiohttp has .status
+    code = getattr(response, 'status', None)
+    if code is None:
+        code = getattr(response, 'status_code', 0)
+    return int(code) == 429
 
 
-def should_retry(response: requests.Response, attempt: int, max_retries: int) -> bool:
+def should_retry(response: _HasStatus, attempt: int, max_retries: int) -> bool:
     """
     Determine if a request should be retried.
 
     Args:
-        response (requests.Response): The response object.
+        response (_HasStatus): The response object.
         attempt (int): Current attempt number.
         max_retries (int): Maximum number of retries.
 
@@ -58,4 +67,8 @@ def should_retry(response: requests.Response, attempt: int, max_retries: int) ->
         return False
 
     # Retry on server errors (5xx) and rate limiting (429)
-    return response.status_code >= 500 or response.status_code == 429
+    code = getattr(response, 'status', None)
+    if code is None:
+        code = getattr(response, 'status_code', 0)
+    code = int(code)
+    return code >= 500 or code == 429
