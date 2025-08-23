@@ -2,7 +2,6 @@
 Error handling utilities for the DIP API client.
 """
 
-
 from typing import Any
 
 import requests
@@ -21,13 +20,12 @@ def handle_api_error(response: requests.Response) -> None:
     if response.status_code >= 400:
         try:
             error_data = response.json()
-            error_message = error_data.get('message', 'Unknown API error')
+            error_message = error_data.get("message", "Unknown API error")
         except ValueError:
             error_message = f"HTTP {response.status_code}: {response.reason}"
 
         raise requests.HTTPError(
-            f"API request failed: {error_message}",
-            response=response
+            f"API request failed: {error_message}", response=response
         )
 
 
@@ -42,9 +40,9 @@ def is_rate_limited(response: Any) -> bool:
         bool: True if rate limited, False otherwise.
     """
     # requests.Response has .status_code, aiohttp has .status
-    code = getattr(response, 'status', None)
+    code = getattr(response, "status", None)
     if code is None:
-        code = getattr(response, 'status_code', 0)
+        code = getattr(response, "status_code", 0)
     return int(code or 0) == 429
 
 
@@ -64,8 +62,8 @@ def should_retry(response: Any, attempt: int, max_retries: int) -> bool:
         return False
 
     # Retry on server errors (5xx) and rate limiting (429)
-    code = getattr(response, 'status', None)
+    code = getattr(response, "status", None)
     if code is None:
-        code = getattr(response, 'status_code', 0)
+        code = getattr(response, "status_code", 0)
     code = int(code or 0)
     return code >= 500 or code == 429

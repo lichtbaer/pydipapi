@@ -18,18 +18,22 @@ def main():
     """Demonstrate basic usage of the pydipapi library."""
 
     # Get API key from environment
-    api_key = os.getenv('DIP_API_KEY')
+    api_key = os.getenv("DIP_API_KEY")
     if not api_key:
         print("Error: DIP_API_KEY environment variable not set")
         print("Please set your API key:")
         print("export DIP_API_KEY='your-api-key-here'")
-        print("You can get an API key from: https://dip.bundestag.de/über-dip/hilfe/api")
+        print(
+            "You can get an API key from: https://dip.bundestag.de/über-dip/hilfe/api"
+        )
         sys.exit(1)
 
     # Check if API key looks valid (not a placeholder)
-    if api_key in ['your-api-key-here', 'test-key', 'demo-key']:
+    if api_key in ["your-api-key-here", "test-key", "demo-key"]:
         print("Error: Please use a valid API key, not a placeholder")
-        print("You can get an API key from: https://dip.bundestag.de/über-dip/hilfe/api")
+        print(
+            "You can get an API key from: https://dip.bundestag.de/über-dip/hilfe/api"
+        )
         sys.exit(1)
 
     print("=== Basic pydipapi Usage Example ===\n")

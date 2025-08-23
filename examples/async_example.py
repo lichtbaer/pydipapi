@@ -13,7 +13,7 @@ from pydipapi import AsyncDipAnfrage
 async def main():
     """Main async function demonstrating the async API."""
     # Get API key from environment
-    api_key = os.getenv('DIP_API_KEY')
+    api_key = os.getenv("DIP_API_KEY")
     if not api_key:
         print("Please set DIP_API_KEY environment variable")
         return
@@ -31,7 +31,7 @@ async def main():
                 client.get_person(anzahl=5),
                 client.get_aktivitaet(anzahl=5),
                 client.get_drucksache(anzahl=5),
-                client.get_vorgang(anzahl=5)
+                client.get_vorgang(anzahl=5),
             ]
 
             # Execute all tasks concurrently
@@ -74,7 +74,9 @@ async def main():
         # Example 5: Get documents by type
         print("\n📄 Getting documents by type...")
         try:
-            kleine_anfragen = await client.get_documents_by_type("kleine_anfrage", anzahl=3)
+            kleine_anfragen = await client.get_documents_by_type(
+                "kleine_anfrage", anzahl=3
+            )
             print(f"✅ Retrieved {len(kleine_anfragen)} kleine Anfragen")
         except Exception as e:
             print(f"❌ Error getting documents by type: {e}")
@@ -84,7 +86,7 @@ async def main():
 
 async def performance_comparison():
     """Compare sync vs async performance."""
-    api_key = os.getenv('DIP_API_KEY')
+    api_key = os.getenv("DIP_API_KEY")
     if not api_key:
         print("Please set DIP_API_KEY environment variable")
         return
@@ -102,7 +104,7 @@ async def performance_comparison():
                 async_client.get_aktivitaet(anzahl=3),
                 async_client.get_drucksache(anzahl=3),
                 async_client.get_vorgang(anzahl=3),
-                async_client.get_plenarprotokoll(anzahl=3)
+                async_client.get_plenarprotokoll(anzahl=3),
             ]
 
             results = await asyncio.gather(*tasks)

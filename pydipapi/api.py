@@ -1,6 +1,7 @@
 """
 Main API client for the German Bundestag API.
 """
+
 import logging
 from typing import Any, Dict, List, Optional
 
@@ -16,6 +17,7 @@ from .util import redact_query_params
 
 logger = logging.getLogger(__name__)
 
+
 class DipAnfrage(BaseApiClient):
     """
     A client for the German Bundestag API (DIP).
@@ -25,9 +27,15 @@ class DipAnfrage(BaseApiClient):
     plenary protocols, proceedings, and proceeding positions.
     """
 
-    def __init__(self, api_key: str, base_url: str = "https://search.dip.bundestag.de/api/v1",
-                 rate_limit_delay: float = 0.1, max_retries: int = 3,
-                 enable_cache: bool = True, cache_ttl: int = 3600):
+    def __init__(
+        self,
+        api_key: str,
+        base_url: str = "https://search.dip.bundestag.de/api/v1",
+        rate_limit_delay: float = 0.1,
+        max_retries: int = 3,
+        enable_cache: bool = True,
+        cache_ttl: int = 3600,
+    ):
         """
         Initialize the DIP API client.
 
@@ -39,7 +47,9 @@ class DipAnfrage(BaseApiClient):
             enable_cache (bool): Whether to enable caching.
             cache_ttl (int): Cache time to live in seconds.
         """
-        super().__init__(api_key, base_url, rate_limit_delay, max_retries, enable_cache, cache_ttl)
+        super().__init__(
+            api_key, base_url, rate_limit_delay, max_retries, enable_cache, cache_ttl
+        )
         self.documents: List[Dict[str, Any]] = []
 
     def _request_json(self, url: str) -> Optional[Dict[str, Any]]:
@@ -57,7 +67,9 @@ class DipAnfrage(BaseApiClient):
         response = super()._make_request(url)
 
         if response is None:
-            logger.error(f"Request failed - no response received for URL: {redact_query_params(url)}")
+            logger.error(
+                f"Request failed - no response received for URL: {redact_query_params(url)}"
+            )
             return None
 
         logger.debug(f"Response status: {response.status_code}")
@@ -66,15 +78,21 @@ class DipAnfrage(BaseApiClient):
         try:
             data_raw = response.json()
             data = data_raw if isinstance(data_raw, dict) else None
-            logger.debug(f"Response data keys: {list(data.keys()) if isinstance(data, dict) else 'Not a dict'}")
-            logger.debug(f"Documents count: {len(data.get('documents', [])) if isinstance(data, dict) else 0}")
+            logger.debug(
+                f"Response data keys: {list(data.keys()) if isinstance(data, dict) else 'Not a dict'}"
+            )
+            logger.debug(
+                f"Documents count: {len(data.get('documents', [])) if isinstance(data, dict) else 0}"
+            )
             return data
         except Exception as e:
             logger.error(f"Failed to parse JSON response: {e}")
             logger.error(f"Response content: {response.text[:500]}...")
             return None
 
-    def _fetch_single_item(self, endpoint: str, item_id: int) -> Optional[Dict[str, Any]]:
+    def _fetch_single_item(
+        self, endpoint: str, item_id: int
+    ) -> Optional[Dict[str, Any]]:
         """
         Fetch a single item by ID.
 
@@ -89,8 +107,8 @@ class DipAnfrage(BaseApiClient):
         data = self._request_json(url)
         if data is None:
             return None
-        if data and 'documents' in data:
-            documents = data['documents']
+        if data and "documents" in data:
+            documents = data["documents"]
             return documents[0] if documents else None
         return None
 
@@ -106,7 +124,7 @@ class DipAnfrage(BaseApiClient):
             str: The complete URL.
         """
         # Add API key to parameters
-        kwargs['apikey'] = self.api_key
+        kwargs["apikey"] = self.api_key
         return super()._build_url(endpoint, **kwargs)
 
     def get_person(self, anzahl: int = 100, **filters) -> List[dict]:
@@ -122,7 +140,7 @@ class DipAnfrage(BaseApiClient):
         """
         try:
             logger.info(f"Fetching {anzahl} persons with filters: {filters}")
-            result = self._fetch_paginated_data('person', anzahl, **filters)
+            result = self._fetch_paginated_data("person", anzahl, **filters)
             logger.info(f"Retrieved {len(result)} persons")
             return result or []
         except Exception as e:
@@ -158,7 +176,7 @@ class DipAnfrage(BaseApiClient):
         url = self._build_url("person", f_id=ids)
         data = self._request_json(url)
         if data:
-            self.documents = data.get('documents', [])
+            self.documents = data.get("documents", [])
         logger.info(f"Retrieved {len(self.documents)} persons")
         return self.documents
 
@@ -177,7 +195,7 @@ class DipAnfrage(BaseApiClient):
         url = self._build_url("aktivitaet", f_id=ids)
         data = self._request_json(url)
         if data:
-            self.documents = data.get('documents', [])
+            self.documents = data.get("documents", [])
         logger.info(f"Retrieved {len(self.documents)} activities")
         return self.documents
 
@@ -194,11 +212,11 @@ class DipAnfrage(BaseApiClient):
         """
         logger.info(f"Fetching documents by IDs: {ids}, text={text}")
         self.documents = []
-        endpoint = 'drucksache-text' if text else 'drucksache'
+        endpoint = "drucksache-text" if text else "drucksache"
         url = self._build_url(endpoint, f_id=ids)
         data = self._request_json(url)
         if data:
-            self.documents = data.get('documents', [])
+            self.documents = data.get("documents", [])
         logger.info(f"Retrieved {len(self.documents)} documents")
         return self.documents
 
@@ -215,11 +233,11 @@ class DipAnfrage(BaseApiClient):
         """
         logger.info(f"Fetching plenary protocols by IDs: {ids}, text={text}")
         self.documents = []
-        endpoint = 'plenarprotokoll-text' if text else 'plenarprotokoll'
+        endpoint = "plenarprotokoll-text" if text else "plenarprotokoll"
         url = self._build_url(endpoint, f_id=ids)
         data = self._request_json(url)
         if data:
-            self.documents = data.get('documents', [])
+            self.documents = data.get("documents", [])
         logger.info(f"Retrieved {len(self.documents)} plenary protocols")
         return self.documents
 
@@ -238,7 +256,7 @@ class DipAnfrage(BaseApiClient):
         url = self._build_url("vorgang", f_id=ids)
         data = self._request_json(url)
         if data:
-            self.documents = data.get('documents', [])
+            self.documents = data.get("documents", [])
         logger.info(f"Retrieved {len(self.documents)} proceedings")
         return self.documents
 
@@ -257,7 +275,7 @@ class DipAnfrage(BaseApiClient):
         url = self._build_url("vorgangsposition", f_id=ids)
         data = self._request_json(url)
         if data:
-            self.documents = data.get('documents', [])
+            self.documents = data.get("documents", [])
         logger.info(f"Retrieved {len(self.documents)} proceeding positions")
         return self.documents
 
@@ -273,13 +291,15 @@ class DipAnfrage(BaseApiClient):
         Returns:
             List[dict]: List of matching documents.
         """
-        logger.info(f"Searching documents with query: '{query}', count: {anzahl}, filters: {filters}")
+        logger.info(
+            f"Searching documents with query: '{query}', count: {anzahl}, filters: {filters}"
+        )
         self.documents = []
-        filters['q'] = query
+        filters["q"] = query
         url = self._build_url("drucksache", anzahl=anzahl, **filters)
         data = self._request_json(url)
         if data:
-            self.documents = data.get('documents', [])
+            self.documents = data.get("documents", [])
         logger.info(f"Retrieved {len(self.documents)} documents from search")
         return self.documents
 
@@ -294,18 +314,20 @@ class DipAnfrage(BaseApiClient):
         Returns:
             List[dict]: List of recent activities.
         """
-        logger.info(f"Fetching recent activities from last {days} days, count: {anzahl}")
+        logger.info(
+            f"Fetching recent activities from last {days} days, count: {anzahl}"
+        )
         from datetime import datetime, timedelta
 
         end_date = datetime.now()
         start_date = end_date - timedelta(days=days)
 
         filters = {
-            'aktualisiert_start': start_date.strftime('%Y-%m-%dT%H:%M:%S'),
-            'aktualisiert_end': end_date.strftime('%Y-%m-%dT%H:%M:%S')
+            "aktualisiert_start": start_date.strftime("%Y-%m-%dT%H:%M:%S"),
+            "aktualisiert_end": end_date.strftime("%Y-%m-%dT%H:%M:%S"),
         }
 
-        result = self._fetch_paginated_data('aktivitaet', anzahl, **filters)
+        result = self._fetch_paginated_data("aktivitaet", anzahl, **filters)
         logger.info(f"Retrieved {len(result)} recent activities")
         return result or []
 
@@ -323,7 +345,9 @@ class DipAnfrage(BaseApiClient):
         result = self.get_person(anzahl=anzahl, titel=name)
         return result or []
 
-    def get_documents_by_type(self, doc_type: str, anzahl: int = 20, **filters) -> List[dict]:
+    def get_documents_by_type(
+        self, doc_type: str, anzahl: int = 20, **filters
+    ) -> List[dict]:
         """
         Get documents by type.
 
@@ -335,11 +359,13 @@ class DipAnfrage(BaseApiClient):
         Returns:
             List[dict]: List of documents of the specified type.
         """
-        filters['drucksachetyp'] = doc_type
+        filters["drucksachetyp"] = doc_type
         result = self.get_drucksache(anzahl=anzahl, **filters)
         return result or []
 
-    def get_proceedings_by_type(self, proc_type: str, anzahl: int = 20, **filters) -> List[dict]:
+    def get_proceedings_by_type(
+        self, proc_type: str, anzahl: int = 20, **filters
+    ) -> List[dict]:
         """
         Get proceedings by type.
 
@@ -351,7 +377,7 @@ class DipAnfrage(BaseApiClient):
         Returns:
             List[dict]: List of proceedings of the specified type.
         """
-        filters['vorgangstyp'] = proc_type
+        filters["vorgangstyp"] = proc_type
         result = self.get_vorgang(anzahl=anzahl, **filters)
         return result or []
 
@@ -365,7 +391,7 @@ class DipAnfrage(BaseApiClient):
         Returns:
             Optional[dict]: The person dictionary or None if not found.
         """
-        return self._fetch_single_item('person', id)
+        return self._fetch_single_item("person", id)
 
     def get_aktivitaet(self, anzahl: int = 100, **filters) -> List[dict]:
         """
@@ -379,7 +405,7 @@ class DipAnfrage(BaseApiClient):
             List[dict]: A list of activity dictionaries.
         """
         try:
-            result = self._fetch_paginated_data('aktivitaet', anzahl, **filters)
+            result = self._fetch_paginated_data("aktivitaet", anzahl, **filters)
             return result or []
         except Exception:
             return []
@@ -391,7 +417,9 @@ class DipAnfrage(BaseApiClient):
         raw = self.get_aktivitaet(anzahl=anzahl, **filters)
         return parse_obj_as(List[ActivityModel], raw)
 
-    def get_drucksache(self, anzahl: int = 10, text: bool = True, **filters) -> List[dict]:
+    def get_drucksache(
+        self, anzahl: int = 10, text: bool = True, **filters
+    ) -> List[dict]:
         """
         Retrieve a list of documents (Drucksache) from the API.
 
@@ -404,7 +432,7 @@ class DipAnfrage(BaseApiClient):
             List[dict]: A list of document dictionaries.
         """
         try:
-            endpoint = 'drucksache-text' if text else 'drucksache'
+            endpoint = "drucksache-text" if text else "drucksache"
             result = self._fetch_paginated_data(endpoint, anzahl, **filters)
             return result or []
         except Exception:
@@ -417,7 +445,9 @@ class DipAnfrage(BaseApiClient):
         raw = self.get_drucksache(anzahl=anzahl, **filters)
         return parse_obj_as(List[DocumentModel], raw)
 
-    def get_plenarprotokoll(self, anzahl: int = 10, text: bool = True, **filters) -> List[dict]:
+    def get_plenarprotokoll(
+        self, anzahl: int = 10, text: bool = True, **filters
+    ) -> List[dict]:
         """
         Retrieve a list of plenary protocols from the API.
 
@@ -430,7 +460,7 @@ class DipAnfrage(BaseApiClient):
             List[dict]: A list of protocol dictionaries.
         """
         try:
-            endpoint = 'plenarprotokoll-text' if text else 'plenarprotokoll'
+            endpoint = "plenarprotokoll-text" if text else "plenarprotokoll"
             result = self._fetch_paginated_data(endpoint, anzahl, **filters)
             return result or []
         except Exception:
@@ -448,12 +478,14 @@ class DipAnfrage(BaseApiClient):
             List[dict]: A list of proceedings.
         """
         try:
-            result = self._fetch_paginated_data('vorgang', anzahl, **filters)
+            result = self._fetch_paginated_data("vorgang", anzahl, **filters)
             return result or []
         except Exception:
             return []
 
-    def get_vorgangsposition(self, anzahl: int = 10, **filters) -> List[Vorgangspositionbezug]:
+    def get_vorgangsposition(
+        self, anzahl: int = 10, **filters
+    ) -> List[Vorgangspositionbezug]:
         """
         Retrieve a list of proceeding positions (Vorgangsposition) from the API.
 
@@ -465,12 +497,16 @@ class DipAnfrage(BaseApiClient):
             List[Vorgangspositionbezug]: A list of proceeding positions.
         """
         try:
-            documents = self._fetch_paginated_data('vorgangsposition', anzahl, **filters)
+            documents = self._fetch_paginated_data(
+                "vorgangsposition", anzahl, **filters
+            )
             return parse_obj_as(List[Vorgangspositionbezug], documents)
         except Exception:
             return []
 
-    def _fetch_paginated_data(self, endpoint: str, count: int, **params) -> List[Dict[str, Any]]:
+    def _fetch_paginated_data(
+        self, endpoint: str, count: int, **params
+    ) -> List[Dict[str, Any]]:
         """
         Fetch paginated data from the API.
 
@@ -482,7 +518,9 @@ class DipAnfrage(BaseApiClient):
         Returns:
             List[Dict[str, Any]]: List of documents.
         """
-        return fetch_paginated_sync(self._build_url, self._request_json, endpoint, count, **params)
+        return fetch_paginated_sync(
+            self._build_url, self._request_json, endpoint, count, **params
+        )
 
     def get_aktivitaet_by_id(self, id: int) -> Optional[dict]:
         """
@@ -494,7 +532,7 @@ class DipAnfrage(BaseApiClient):
         Returns:
             Optional[dict]: The activity dictionary or None if not found.
         """
-        return self._fetch_single_item('aktivitaet', id)
+        return self._fetch_single_item("aktivitaet", id)
 
     def get_drucksache_by_id(self, id: int) -> Optional[dict]:
         """
@@ -506,7 +544,7 @@ class DipAnfrage(BaseApiClient):
         Returns:
             Optional[dict]: The document dictionary or None if not found.
         """
-        return self._fetch_single_item('drucksache', id)
+        return self._fetch_single_item("drucksache", id)
 
     def get_drucksache_text_by_id(self, id: int) -> Optional[dict]:
         """
@@ -518,7 +556,7 @@ class DipAnfrage(BaseApiClient):
         Returns:
             Optional[dict]: The document dictionary or None if not found.
         """
-        return self._fetch_single_item('drucksache-text', id)
+        return self._fetch_single_item("drucksache-text", id)
 
     def get_plenarprotokoll_by_id(self, id: int) -> Optional[dict]:
         """
@@ -530,7 +568,7 @@ class DipAnfrage(BaseApiClient):
         Returns:
             Optional[dict]: The protocol dictionary or None if not found.
         """
-        return self._fetch_single_item('plenarprotokoll', id)
+        return self._fetch_single_item("plenarprotokoll", id)
 
     def get_plenarprotokoll_text_by_id(self, id: int) -> Optional[dict]:
         """
@@ -542,7 +580,7 @@ class DipAnfrage(BaseApiClient):
         Returns:
             Optional[dict]: The protocol dictionary or None if not found.
         """
-        return self._fetch_single_item('plenarprotokoll-text', id)
+        return self._fetch_single_item("plenarprotokoll-text", id)
 
     def get_vorgang_by_id(self, id: int) -> Optional[dict]:
         """
@@ -554,7 +592,7 @@ class DipAnfrage(BaseApiClient):
         Returns:
             Optional[dict]: The proceeding dictionary or None if not found.
         """
-        return self._fetch_single_item('vorgang', id)
+        return self._fetch_single_item("vorgang", id)
 
     def get_vorgangsposition_by_id(self, id: int) -> Optional[dict]:
         """
@@ -566,7 +604,7 @@ class DipAnfrage(BaseApiClient):
         Returns:
             Optional[dict]: The proceeding position dictionary or None if not found.
         """
-        return self._fetch_single_item('vorgangsposition', id)
+        return self._fetch_single_item("vorgangsposition", id)
 
     def clear_cache(self) -> None:
         """

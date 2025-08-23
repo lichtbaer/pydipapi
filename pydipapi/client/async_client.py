@@ -20,8 +20,15 @@ class AsyncBaseApiClient:
     Async base client for API requests with rate limiting, retry logic, and caching.
     """
 
-    def __init__(self, api_key: str, base_url: str, rate_limit_delay: float = 0.1,
-                 max_retries: int = 3, enable_cache: bool = True, cache_ttl: int = 3600):
+    def __init__(
+        self,
+        api_key: str,
+        base_url: str,
+        rate_limit_delay: float = 0.1,
+        max_retries: int = 3,
+        enable_cache: bool = True,
+        cache_ttl: int = 3600,
+    ):
         """
         Initialize the async base API client.
 
@@ -34,7 +41,7 @@ class AsyncBaseApiClient:
             cache_ttl (int): Cache time to live in seconds.
         """
         self.api_key = api_key
-        self.base_url = base_url.rstrip('/')
+        self.base_url = base_url.rstrip("/")
         self.rate_limit_delay = rate_limit_delay
         self.max_retries = max_retries
         self.enable_cache = enable_cache
@@ -45,13 +52,14 @@ class AsyncBaseApiClient:
         """Get or create the aiohttp session."""
         if self._session is None or self._session.closed:
             self._session = aiohttp.ClientSession(
-                headers={'Content-Type': 'application/json'},
-                timeout=aiohttp.ClientTimeout(total=30)
+                headers={"Content-Type": "application/json"},
+                timeout=aiohttp.ClientTimeout(total=30),
             )
         return self._session
 
-    async def _make_request(self, url: str, params: Optional[Dict[str, Any]] = None,
-                       use_cache: bool = True) -> Optional[aiohttp.ClientResponse]:
+    async def _make_request(
+        self, url: str, params: Optional[Dict[str, Any]] = None, use_cache: bool = True
+    ) -> Optional[aiohttp.ClientResponse]:
         """
         Make an async API request with rate limiting, retry logic, and optional caching.
 
@@ -75,8 +83,13 @@ class AsyncBaseApiClient:
             cached_data = self.cache.get(url, params)
             if cached_data:
                 logger.debug("Returning cached response")
+
                 class _CachedResponse:
-                    def __init__(self, data_json: Optional[Dict[str, Any]], headers: Dict[str, Any]):
+                    def __init__(
+                        self,
+                        data_json: Optional[Dict[str, Any]],
+                        headers: Dict[str, Any],
+                    ):
                         self._data_json = data_json or {}
                         self.headers = headers or {}
                         self.status = 200
@@ -89,14 +102,14 @@ class AsyncBaseApiClient:
 
                 # Support both legacy 'content' bytes and new 'json' cache formats
                 data_json: Optional[Dict[str, Any]] = None
-                if 'json' in cached_data:
-                    data_json = cached_data.get('json')
-                elif 'content' in cached_data:
+                if "json" in cached_data:
+                    data_json = cached_data.get("json")
+                elif "content" in cached_data:
                     try:
-                        data_json = json.loads(cached_data['content'].decode('utf-8'))
+                        data_json = json.loads(cached_data["content"].decode("utf-8"))
                     except Exception:
                         data_json = None
-                cached_resp = _CachedResponse(data_json, cached_data.get('headers', {}))
+                cached_resp = _CachedResponse(data_json, cached_data.get("headers", {}))
                 return cast(Optional[aiohttp.ClientResponse], cached_resp)
 
         session = await self._get_session()
@@ -111,7 +124,9 @@ class AsyncBaseApiClient:
                     logger.debug(f"Rate limiting delay: {delay}s (attempt {attempt})")
                     await asyncio.sleep(delay)  # Async sleep
 
-                logger.debug(f"Making async HTTP request (attempt {attempt + 1}/{self.max_retries + 1})")
+                logger.debug(
+                    f"Making async HTTP request (attempt {attempt + 1}/{self.max_retries + 1})"
+                )
                 async with session.get(url, params=params) as response:
                     logger.debug(f"Response status: {response.status}")
                     logger.debug(f"Response headers: {dict(response.headers)}")
@@ -120,7 +135,7 @@ class AsyncBaseApiClient:
                     if is_rate_limited(response):
                         logger.warning(f"Rate limited - status: {response.status}")
                         if attempt < self.max_retries:
-                            retry_after = int(response.headers.get('Retry-After', 60))
+                            retry_after = int(response.headers.get("Retry-After", 60))
                             logger.info(f"Waiting {retry_after}s before retry")
                             await asyncio.sleep(retry_after)
                             attempt += 1
@@ -136,7 +151,7 @@ class AsyncBaseApiClient:
                                 request_info=response.request_info,
                                 history=response.history,
                                 status=response.status,
-                                message=f"HTTP {response.status}: {response.reason}"
+                                message=f"HTTP {response.status}: {response.reason}",
                             )
                     except Exception as e:
                         logger.error(f"handle_api_error failed: {e}")
@@ -146,23 +161,36 @@ class AsyncBaseApiClient:
 
                         # Provide specific guidance for common errors
                         if response.status == 401:
-                            logger.error("Authentication failed. Please check your API key.")
-                            logger.error("You can get an API key from: https://dip.bundestag.de/über-dip/hilfe/api")
+                            logger.error(
+                                "Authentication failed. Please check your API key."
+                            )
+                            logger.error(
+                                "You can get an API key from: https://dip.bundestag.de/über-dip/hilfe/api"
+                            )
                         elif response.status == 403:
-                            logger.error("Access forbidden. Your API key may not have the required permissions.")
+                            logger.error(
+                                "Access forbidden. Your API key may not have the required permissions."
+                            )
                         elif response.status == 429:
-                            logger.error("Rate limit exceeded. Please wait before making more requests.")
+                            logger.error(
+                                "Rate limit exceeded. Please wait before making more requests."
+                            )
 
                         raise e
 
                     # Cache successful responses (store JSON to be JSON-serializable)
-                    if self.enable_cache and use_cache and self.cache and response.status == 200:
+                    if (
+                        self.enable_cache
+                        and use_cache
+                        and self.cache
+                        and response.status == 200
+                    ):
                         logger.debug("Caching successful response")
                         try:
                             response_json = await response.json()
                             cache_data = {
-                                'json': response_json,
-                                'headers': dict(response.headers)
+                                "json": response_json,
+                                "headers": dict(response.headers),
                             }
                             self.cache.set(url, cache_data, params)
                         except Exception:
@@ -173,7 +201,11 @@ class AsyncBaseApiClient:
 
             except aiohttp.ClientError as e:
                 logger.error(f"ClientError on attempt {attempt + 1}: {e}")
-                if attempt < self.max_retries and response and should_retry(response, attempt, self.max_retries):
+                if (
+                    attempt < self.max_retries
+                    and response
+                    and should_retry(response, attempt, self.max_retries)
+                ):
                     logger.info(f"Retrying request (attempt {attempt + 1})")
                     attempt += 1
                     continue
@@ -222,7 +254,9 @@ class AsyncBaseApiClient:
 
         return url
 
-    async def _fetch_single_item(self, endpoint: str, item_id: int) -> Optional[Dict[str, Any]]:
+    async def _fetch_single_item(
+        self, endpoint: str, item_id: int
+    ) -> Optional[Dict[str, Any]]:
         """
         Fetch a single item by ID asynchronously.
 
@@ -238,8 +272,8 @@ class AsyncBaseApiClient:
         if response is None:
             return None
         data = await response.json()
-        if data and 'documents' in data:
-            documents = data['documents']
+        if data and "documents" in data:
+            documents = data["documents"]
             return documents[0] if documents else None
         return None
 
@@ -248,7 +282,7 @@ class AsyncBaseApiClient:
         if self._session and not self._session.closed:
             await self._session.close()
 
-    async def __aenter__(self) -> 'AsyncBaseApiClient':
+    async def __aenter__(self) -> "AsyncBaseApiClient":
         """Async context manager entry."""
         return self
 

@@ -1,6 +1,7 @@
 """
 Error handling utilities for the pydipapi package.
 """
+
 import logging
 from typing import Any, Dict, Optional, cast
 
@@ -11,20 +12,24 @@ logger = logging.getLogger(__name__)
 
 class DipApiError(Exception):
     """Base exception for pydipapi errors."""
+
     pass
 
 
 class DipApiConnectionError(DipApiError):
     """Raised when connection to the API fails."""
+
     pass
 
 
 class DipApiHttpError(DipApiError):
     """Raised when the API returns an HTTP error."""
+
     def __init__(self, status_code: int, message: str):
         self.status_code = status_code
         self.message = message
         super().__init__(f"HTTP {status_code}: {message}")
+
 
 def handle_api_response(response: requests.Response) -> Optional[Dict[str, Any]]:
     """
@@ -55,6 +60,7 @@ def handle_api_response(response: requests.Response) -> Optional[Dict[str, Any]]
         logger.error(f"Unexpected error occurred: {e}")
         raise DipApiError(f"Unexpected error: {e}")
 
+
 def validate_api_key(api_key: Optional[str]) -> str:
     """
     Validate that an API key is provided.
@@ -66,5 +72,7 @@ def validate_api_key(api_key: Optional[str]) -> str:
         ValueError: If no API key is provided.
     """
     if not api_key:
-        raise ValueError("API key is required. Please provide an API key or set the DIP_API_KEY environment variable.")
+        raise ValueError(
+            "API key is required. Please provide an API key or set the DIP_API_KEY environment variable."
+        )
     return api_key
