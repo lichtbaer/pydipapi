@@ -95,9 +95,9 @@ jobs:
           pip install mkdocs mkdocs-material mkdocstrings[python]
           pip install linkchecker
           
-      - name: Build documentation
+      - name: Build documentation (strict)
         run: |
-          mkdocs build
+          mkdocs build --clean --strict
           
       - name: Check links
         run: |
