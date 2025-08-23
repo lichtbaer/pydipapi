@@ -13,7 +13,7 @@ from .type import Vorgangspositionbezug
 from .util import redact_query_params
 
 if TYPE_CHECKING:  # for forward-ref type hints only
-	from .type import Activity, Document, Person
+    from .type import Activity, Document, Person
 
 logger = logging.getLogger(__name__)
 
