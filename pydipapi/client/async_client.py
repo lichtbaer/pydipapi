@@ -7,6 +7,7 @@ import logging
 from typing import Any, Dict, Optional
 
 import aiohttp
+import json
 
 from ..util.cache import SimpleCache
 from ..util.error_handler import is_rate_limited, should_retry
@@ -74,9 +75,28 @@ class AsyncBaseApiClient:
             cached_data = self.cache.get(url, params)
             if cached_data:
                 logger.debug("Returning cached response")
-                # Create a mock response object with cached data
-                # Note: This is a simplified approach for async
-                return None  # We'll handle cached data differently
+                class _CachedResponse:
+                    def __init__(self, data_json: Optional[Dict[str, Any]], headers: Dict[str, Any]):
+                        self._data_json = data_json or {}
+                        self.headers = headers or {}
+                        self.status = 200
+
+                    async def json(self) -> Dict[str, Any]:
+                        return self._data_json
+
+                    async def text(self) -> str:
+                        return json.dumps(self._data_json)
+
+                # Support both legacy 'content' bytes and new 'json' cache formats
+                data_json: Optional[Dict[str, Any]] = None
+                if 'json' in cached_data:
+                    data_json = cached_data.get('json')
+                elif 'content' in cached_data:
+                    try:
+                        data_json = json.loads(cached_data['content'].decode('utf-8'))
+                    except Exception:
+                        data_json = None
+                return _CachedResponse(data_json, cached_data.get('headers', {}))
 
         session = await self._get_session()
         attempt = 0
@@ -134,15 +154,19 @@ class AsyncBaseApiClient:
 
                         raise e
 
-                    # Cache successful responses
+                    # Cache successful responses (store JSON to be JSON-serializable)
                     if self.enable_cache and use_cache and self.cache and response.status == 200:
                         logger.debug("Caching successful response")
-                        response_text = await response.text()
-                        cache_data = {
-                            'content': response_text.encode(),
-                            'headers': dict(response.headers)
-                        }
-                        self.cache.set(url, cache_data, params)
+                        try:
+                            response_json = await response.json()
+                            cache_data = {
+                                'json': response_json,
+                                'headers': dict(response.headers)
+                            }
+                            self.cache.set(url, cache_data, params)
+                        except Exception:
+                            # Fallback: ignore cache write errors silently (already logged by cache)
+                            pass
 
                     logger.debug(f"Request successful - status: {response.status}")
                     return response

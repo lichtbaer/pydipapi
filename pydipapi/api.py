@@ -8,6 +8,7 @@ from pydantic import parse_obj_as
 
 from .client.base_client import BaseApiClient
 from .type import Vorgangspositionbezug
+from .util import redact_query_params
 
 logger = logging.getLogger(__name__)
 
@@ -47,12 +48,12 @@ class DipAnfrage(BaseApiClient):
         Returns:
             Optional[dict]: The parsed JSON response or None if failed.
         """
-        logger.debug(f"Making request to: {url}")
+        logger.debug(f"Making request to: {redact_query_params(url)}")
 
         response = super()._make_request(url)
 
         if response is None:
-            logger.error(f"Request failed - no response received for URL: {url}")
+            logger.error(f"Request failed - no response received for URL: {redact_query_params(url)}")
             return None
 
         logger.debug(f"Response status: {response.status_code}")

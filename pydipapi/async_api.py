@@ -9,6 +9,7 @@ from pydantic import parse_obj_as
 
 from .client.async_client import AsyncBaseApiClient
 from .type import Vorgangspositionbezug
+from .util import redact_query_params
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +49,7 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             Optional[dict]: The JSON response data or None if failed.
         """
         try:
+            logger.debug(f"Async wrapper making request to: {redact_query_params(url)}")
             response = await super()._make_request(url)
             if response is None:
                 return None
