@@ -125,7 +125,7 @@ class Protocol(BaseModel):
     Typed representation of a plenary protocol (Plenarprotokoll).
     """
     id: Optional[constr(strict=True, pattern=r'^\d+$')] = Field(None, description="DIP protocol ID")
-    situngsnummer: Optional[str] = Field(None, description="Session number")
+    sitzungsnummer: Optional[str] = Field(None, description="Session number")
     wahlperiode: Optional[int] = Field(None, description="Legislative period")
     sitzungsdatum: Optional[date] = Field(None, description="Session date")
     text: Optional[str] = Field(None, description="Protocol text")
