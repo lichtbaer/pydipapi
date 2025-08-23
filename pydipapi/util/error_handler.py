@@ -39,11 +39,18 @@ def is_rate_limited(response: Any) -> bool:
     Returns:
         bool: True if rate limited, False otherwise.
     """
-    # requests.Response has .status_code, aiohttp has .status
-    code = getattr(response, "status", None)
+    # Prefer requests.Response.status_code; fallback to aiohttp's .status
+    code = getattr(response, "status_code", None)
     if code is None:
-        code = getattr(response, "status_code", 0)
-    return int(code or 0) == 429
+        code = getattr(response, "status", None)
+
+    try:
+        code_int = int(code) if code is not None else 0
+    except Exception:
+        # Be defensive for mocks or unexpected types
+        code_int = 0
+
+    return code_int == 429
 
 
 def should_retry(response: Any, attempt: int, max_retries: int) -> bool:
@@ -62,8 +69,15 @@ def should_retry(response: Any, attempt: int, max_retries: int) -> bool:
         return False
 
     # Retry on server errors (5xx) and rate limiting (429)
-    code = getattr(response, "status", None)
+    # Prefer requests.Response.status_code; fallback to aiohttp's .status
+    code = getattr(response, "status_code", None)
     if code is None:
-        code = getattr(response, "status_code", 0)
-    code = int(code or 0)
-    return code >= 500 or code == 429
+        code = getattr(response, "status", None)
+
+    try:
+        code_int = int(code) if code is not None else 0
+    except Exception:
+        # Be defensive for mocks or unexpected types
+        code_int = 0
+
+    return code_int >= 500 or code_int == 429
