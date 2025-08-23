@@ -20,7 +20,7 @@ class TestIntegration(unittest.TestCase):
     def setUpClass(cls):
         """Set up test environment."""
         # Get API key from environment
-        api_key = os.getenv('DIP_API_KEY')
+        api_key = os.getenv("DIP_API_KEY")
         if not api_key:
             pytest.skip("DIP_API_KEY environment variable not set")
 
@@ -50,8 +50,8 @@ class TestIntegration(unittest.TestCase):
             person = persons[0]
             self.assertIsInstance(person, dict)
             # Check for expected fields
-            self.assertIn('id', person)
-            self.assertIn('name', person)
+            self.assertIn("id", person)
+            self.assertIn("name", person)
 
     def test_get_person_by_id_integration(self):
         """Test getting a specific person by ID."""
@@ -60,8 +60,8 @@ class TestIntegration(unittest.TestCase):
         # Should return a person or None (if ID doesn't exist)
         if person is not None:
             self.assertIsInstance(person, dict)
-            self.assertEqual(str(person.get('id')), str(self.test_person_id))
-            self.assertIn('name', person)
+            self.assertEqual(str(person.get("id")), str(self.test_person_id))
+            self.assertIn("name", person)
 
     def test_get_documents_integration(self):
         """Test getting documents from the real API."""
@@ -76,8 +76,8 @@ class TestIntegration(unittest.TestCase):
             document = documents[0]
             self.assertIsInstance(document, dict)
             # Check for expected fields
-            self.assertIn('id', document)
-            self.assertIn('titel', document)
+            self.assertIn("id", document)
+            self.assertIn("titel", document)
 
     def test_get_document_by_id_integration(self):
         """Test getting a specific document by ID."""
@@ -86,8 +86,8 @@ class TestIntegration(unittest.TestCase):
         # Should return a document or None (if ID doesn't exist)
         if document is not None:
             self.assertIsInstance(document, dict)
-            self.assertEqual(str(document.get('id')), str(self.test_document_id))
-            self.assertIn('titel', document)
+            self.assertEqual(str(document.get("id")), str(self.test_document_id))
+            self.assertIn("titel", document)
 
     def test_get_activities_integration(self):
         """Test getting activities from the real API."""
@@ -102,7 +102,7 @@ class TestIntegration(unittest.TestCase):
             activity = activities[0]
             self.assertIsInstance(activity, dict)
             # Check for expected fields
-            self.assertIn('id', activity)
+            self.assertIn("id", activity)
 
     def test_get_activity_by_id_integration(self):
         """Test getting a specific activity by ID."""
@@ -111,7 +111,7 @@ class TestIntegration(unittest.TestCase):
         # Should return an activity or None (if ID doesn't exist)
         if activity is not None:
             self.assertIsInstance(activity, dict)
-            self.assertEqual(str(activity.get('id')), str(self.test_activity_id))
+            self.assertEqual(str(activity.get("id")), str(self.test_activity_id))
 
     def test_search_documents_integration(self):
         """Test searching documents with real API."""
@@ -126,8 +126,8 @@ class TestIntegration(unittest.TestCase):
             # Check structure of first result
             result = results[0]
             self.assertIsInstance(result, dict)
-            self.assertIn('id', result)
-            self.assertIn('titel', result)
+            self.assertIn("id", result)
+            self.assertIn("titel", result)
 
     def test_get_person_by_name_integration(self):
         """Test getting persons by name with real API."""
@@ -142,8 +142,8 @@ class TestIntegration(unittest.TestCase):
             # Check structure of first person
             person = persons[0]
             self.assertIsInstance(person, dict)
-            self.assertIn('id', person)
-            self.assertIn('name', person)
+            self.assertIn("id", person)
+            self.assertIn("name", person)
 
     def test_get_documents_by_type_integration(self):
         """Test getting documents by type with real API."""
@@ -158,8 +158,8 @@ class TestIntegration(unittest.TestCase):
             # Check structure of first document
             document = documents[0]
             self.assertIsInstance(document, dict)
-            self.assertIn('id', document)
-            self.assertIn('titel', document)
+            self.assertIn("id", document)
+            self.assertIn("titel", document)
 
     def test_get_proceedings_by_type_integration(self):
         """Test getting proceedings by type with real API."""
@@ -174,7 +174,7 @@ class TestIntegration(unittest.TestCase):
             # Check structure of first proceeding
             proceeding = proceedings[0]
             self.assertIsInstance(proceeding, dict)
-            self.assertIn('id', proceeding)
+            self.assertIn("id", proceeding)
 
     def test_batch_operations_integration(self):
         """Test batch operations with real API."""
@@ -191,7 +191,7 @@ class TestIntegration(unittest.TestCase):
             # Check structure of first person
             person = persons[0]
             self.assertIsInstance(person, dict)
-            self.assertIn('id', person)
+            self.assertIn("id", person)
 
     def test_filtering_integration(self):
         """Test filtering with real API."""
@@ -206,7 +206,7 @@ class TestIntegration(unittest.TestCase):
             # Check structure of first person
             person = persons[0]
             self.assertIsInstance(person, dict)
-            self.assertIn('id', person)
+            self.assertIn("id", person)
 
     def test_rate_limiting_integration(self):
         """Test that rate limiting works with real API."""
@@ -267,18 +267,18 @@ class TestIntegration(unittest.TestCase):
             # Check structure of first person
             person = persons[0]
             self.assertIsInstance(person, dict)
-            self.assertIn('id', person)
+            self.assertIn("id", person)
 
     def test_url_building_integration(self):
         """Test URL building with real API."""
         # Test URL building with various parameters
-        url = self.dip._build_url('person', anzahl=10, wahlperiode=20)
+        url = self.dip._build_url("person", anzahl=10, wahlperiode=20)
 
         # Should contain expected components
-        self.assertIn('person', url)
-        self.assertIn('apikey', url)
-        self.assertIn('anzahl=10', url)
-        self.assertIn('wahlperiode=20', url)
+        self.assertIn("person", url)
+        self.assertIn("apikey", url)
+        self.assertIn("anzahl=10", url)
+        self.assertIn("wahlperiode=20", url)
 
     def test_empty_response_handling_integration(self):
         """Test handling of empty responses from real API."""
@@ -300,7 +300,7 @@ class TestIntegration(unittest.TestCase):
             # Check structure of first protocol
             protocol = protocols[0]
             self.assertIsInstance(protocol, dict)
-            self.assertIn('id', protocol)
+            self.assertIn("id", protocol)
 
     def test_vorgang_integration(self):
         """Test getting proceedings from real API."""
@@ -314,7 +314,7 @@ class TestIntegration(unittest.TestCase):
             # Check structure of first proceeding
             proceeding = proceedings[0]
             self.assertIsInstance(proceeding, dict)
-            self.assertIn('id', proceeding)
+            self.assertIn("id", proceeding)
 
     def test_vorgangsposition_integration(self):
         """Test getting proceeding positions from real API."""
@@ -328,8 +328,8 @@ class TestIntegration(unittest.TestCase):
             # Check structure of first position
             position = positions[0]
             self.assertIsInstance(position, dict)
-            self.assertIn('id', position)
+            self.assertIn("id", position)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

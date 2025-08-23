@@ -33,4 +33,6 @@ def redact_query_params(url: str, keys_to_redact: Iterable[str] = ("apikey",)) -
         else:
             redacted_pairs.append((k, v))
     redacted_query = urlencode(redacted_pairs)
-    return urlunsplit((split.scheme, split.netloc, split.path, redacted_query, split.fragment))
+    return urlunsplit(
+        (split.scheme, split.netloc, split.path, redacted_query, split.fragment)
+    )

@@ -9,33 +9,79 @@ class Vorgangsbezug(BaseModel):
     """
     Represents a reference to a legislative process.
     """
-    id: str = Field(..., json_schema_extra={"example": "84393", "description": "ID eines verknüpften Vorgangs"})
-    titel: str = Field(..., json_schema_extra={"example": "Eröffnung der 1. Sitzung des 19. Deutschen Bundestages", "description": "Title of the process"})
-    vorgangstyp: str = Field(..., json_schema_extra={"example": "Ansprache/Erklärung/Mitteilung", "description": "Type of the process"})
+
+    id: str = Field(
+        ...,
+        json_schema_extra={
+            "example": "84393",
+            "description": "ID eines verknüpften Vorgangs",
+        },
+    )
+    titel: str = Field(
+        ...,
+        json_schema_extra={
+            "example": "Eröffnung der 1. Sitzung des 19. Deutschen Bundestages",
+            "description": "Title of the process",
+        },
+    )
+    vorgangstyp: str = Field(
+        ...,
+        json_schema_extra={
+            "example": "Ansprache/Erklärung/Mitteilung",
+            "description": "Type of the process",
+        },
+    )
 
 
 class Vorgangspositionbezug(Vorgangsbezug):
     """
     Represents a specific position within a legislative process.
     """
-    vorgangsposition: str = Field(..., json_schema_extra={"example": "Ansprache", "description": "Position within the process"})
+
+    vorgangsposition: str = Field(
+        ...,
+        json_schema_extra={
+            "example": "Ansprache",
+            "description": "Position within the process",
+        },
+    )
 
 
 class VorgangVerlinkung(BaseModel):
     """
     Represents a link to a legislative process.
     """
-    id: str = Field(..., json_schema_extra={"example": "282237", "description": "ID eines verknüpften Vorgangs"})
-    verweisung: str = Field(..., json_schema_extra={"example": "Bericht", "description": "Reference type"})
-    titel: str = Field(..., json_schema_extra={"example": "Zwischenbericht zur Reform des Bundeswahlrechts und zur Modernisierung der Parlamentsarbeit", "description": "Title of the reference"})
-    wahlperiode: int = Field(..., json_schema_extra={"example": 19, "description": "Legislative period"})
-    gesta: Optional[str] = Field(None, json_schema_extra={"description": "GESTA code if available"})
+
+    id: str = Field(
+        ...,
+        json_schema_extra={
+            "example": "282237",
+            "description": "ID eines verknüpften Vorgangs",
+        },
+    )
+    verweisung: str = Field(
+        ..., json_schema_extra={"example": "Bericht", "description": "Reference type"}
+    )
+    titel: str = Field(
+        ...,
+        json_schema_extra={
+            "example": "Zwischenbericht zur Reform des Bundeswahlrechts und zur Modernisierung der Parlamentsarbeit",
+            "description": "Title of the reference",
+        },
+    )
+    wahlperiode: int = Field(
+        ..., json_schema_extra={"example": 19, "description": "Legislative period"}
+    )
+    gesta: Optional[str] = Field(
+        None, json_schema_extra={"description": "GESTA code if available"}
+    )
 
 
 class Bundesland(str, Enum):
     """
     Enumeration of German federal states.
     """
+
     BADEN_WUERTTEMBERG = "Baden-Württemberg"
     BAYERN = "Bayern"
     BERLIN = "Berlin"
@@ -58,13 +104,17 @@ class Datum(BaseModel):
     """
     Represents a date.
     """
-    datum: date = Field(..., json_schema_extra={"description": "The date in YYYY-MM-DD format"})
+
+    datum: date = Field(
+        ..., json_schema_extra={"description": "The date in YYYY-MM-DD format"}
+    )
 
 
 class Quadrant(str, Enum):
     """
     Enumeration of quadrants.
     """
+
     A = "A"
     B = "B"
     C = "C"
@@ -75,6 +125,7 @@ class Zuordnung(str, Enum):
     """
     Enumeration of assignments.
     """
+
     BT = "BT"
     BR = "BR"
     BV = "BV"
@@ -86,6 +137,7 @@ class Person(BaseModel):
     """
     Typed representation of a person (parliament member).
     """
+
     id: Optional[str] = Field(None, description="DIP person ID")
     name: Optional[str] = Field(None, description="Full name")
     vorname: Optional[str] = Field(None, description="First name")
@@ -101,6 +153,7 @@ class Document(BaseModel):
     """
     Typed representation of a document (Drucksache).
     """
+
     id: Optional[str] = Field(None, description="DIP document ID")
     titel: Optional[str] = Field(None, description="Title")
     dokumentart: Optional[str] = Field(None, description="Document type raw")
@@ -112,6 +165,7 @@ class Activity(BaseModel):
     """
     Typed representation of an activity (Aktivität / Plenarereignis).
     """
+
     id: Optional[str] = Field(None, description="DIP activity ID")
     titel: Optional[str] = Field(None, description="Activity title")
     sitzungsnummer: Optional[str] = Field(None, description="Session number")
@@ -124,6 +178,7 @@ class Protocol(BaseModel):
     """
     Typed representation of a plenary protocol (Plenarprotokoll).
     """
+
     id: Optional[str] = Field(None, description="DIP protocol ID")
     sitzungsnummer: Optional[str] = Field(None, description="Session number")
     wahlperiode: Optional[int] = Field(None, description="Legislative period")

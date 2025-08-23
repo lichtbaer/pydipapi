@@ -38,15 +38,14 @@ class SimpleCache:
         Returns:
             str: The cache key.
         """
-        key_data = {
-            'url': url,
-            'params': params or {}
-        }
+        key_data = {"url": url, "params": params or {}}
         key_string = json.dumps(key_data, sort_keys=True)
         # Use SHA256 instead of MD5 for security
         return hashlib.sha256(key_string.encode()).hexdigest()
 
-    def get(self, url: str, params: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+    def get(
+        self, url: str, params: Optional[Dict[str, Any]] = None
+    ) -> Optional[Dict[str, Any]]:
         """
         Get a cached response.
 
@@ -68,11 +67,11 @@ class SimpleCache:
                 cached_data = json.load(f)
 
             # Check if cache is expired
-            if time.time() - cached_data['timestamp'] > self.ttl:
+            if time.time() - cached_data["timestamp"] > self.ttl:
                 cache_file.unlink()
                 return None
 
-            data_obj = cached_data.get('data')
+            data_obj = cached_data.get("data")
             if isinstance(data_obj, dict):
                 return cast(Dict[str, Any], data_obj)
             return None
@@ -83,7 +82,9 @@ class SimpleCache:
                 cache_file.unlink()
             return None
 
-    def set(self, url: str, data: Dict[str, Any], params: Optional[Dict[str, Any]] = None) -> None:
+    def set(
+        self, url: str, data: Dict[str, Any], params: Optional[Dict[str, Any]] = None
+    ) -> None:
         """
         Cache a response.
 
@@ -95,13 +96,10 @@ class SimpleCache:
         cache_key = self._get_cache_key(url, params)
         cache_file = self.cache_dir / f"{cache_key}.json"
 
-        cache_data = {
-            'timestamp': time.time(),
-            'data': data
-        }
+        cache_data = {"timestamp": time.time(), "data": data}
 
         try:
-            with open(cache_file, 'w') as f:
+            with open(cache_file, "w") as f:
                 json.dump(cache_data, f)
         except Exception as e:
             logging.warning(f"Failed to write cache file {cache_file}: {e}")
@@ -127,7 +125,7 @@ class SimpleCache:
                 with open(cache_file) as f:
                     cached_data = json.load(f)
 
-                if current_time - cached_data['timestamp'] > self.ttl:
+                if current_time - cached_data["timestamp"] > self.ttl:
                     cache_file.unlink()
 
             except Exception as e:

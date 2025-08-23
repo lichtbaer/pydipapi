@@ -1,6 +1,7 @@
 """
 Base client for API operations.
 """
+
 import logging
 import time
 from typing import Any, Dict, Optional
@@ -12,13 +13,21 @@ from ..util.error_handler import handle_api_error, is_rate_limited, should_retry
 
 logger = logging.getLogger(__name__)
 
+
 class BaseApiClient:
     """
     Base client for API requests with rate limiting, retry logic, and caching.
     """
 
-    def __init__(self, api_key: str, base_url: str, rate_limit_delay: float = 0.1,
-                 max_retries: int = 3, enable_cache: bool = True, cache_ttl: int = 3600):
+    def __init__(
+        self,
+        api_key: str,
+        base_url: str,
+        rate_limit_delay: float = 0.1,
+        max_retries: int = 3,
+        enable_cache: bool = True,
+        cache_ttl: int = 3600,
+    ):
         """
         Initialize the base API client.
 
@@ -31,19 +40,18 @@ class BaseApiClient:
             cache_ttl (int): Cache time to live in seconds.
         """
         self.api_key = api_key
-        self.base_url = base_url.rstrip('/')
+        self.base_url = base_url.rstrip("/")
         self.rate_limit_delay = rate_limit_delay
         self.max_retries = max_retries
         self.enable_cache = enable_cache
         self.cache = SimpleCache(ttl=cache_ttl) if enable_cache else None
 
         self.session = requests.Session()
-        self.session.headers.update({
-            'Content-Type': 'application/json'
-        })
+        self.session.headers.update({"Content-Type": "application/json"})
 
-    def _make_request(self, url: str, params: Optional[Dict[str, Any]] = None,
-                     use_cache: bool = True) -> Optional[requests.Response]:
+    def _make_request(
+        self, url: str, params: Optional[Dict[str, Any]] = None, use_cache: bool = True
+    ) -> Optional[requests.Response]:
         """
         Make an API request with rate limiting, retry logic, and optional caching.
 
@@ -70,8 +78,8 @@ class BaseApiClient:
                 # Create a mock response object with cached data
                 cached_response = requests.Response()
                 cached_response.status_code = 200
-                cached_response._content = cached_data.get('content', b'{}')
-                cached_response.headers = cached_data.get('headers', {})
+                cached_response._content = cached_data.get("content", b"{}")
+                cached_response.headers = cached_data.get("headers", {})
                 return cached_response
 
         attempt = 0
@@ -85,7 +93,9 @@ class BaseApiClient:
                     logger.debug(f"Rate limiting delay: {delay}s (attempt {attempt})")
                     time.sleep(delay)  # Exponential backoff
 
-                logger.debug(f"Making HTTP request (attempt {attempt + 1}/{self.max_retries + 1})")
+                logger.debug(
+                    f"Making HTTP request (attempt {attempt + 1}/{self.max_retries + 1})"
+                )
                 response = self.session.get(url, params=params, timeout=30)
                 logger.debug(f"Response status: {response.status_code}")
                 logger.debug(f"Response headers: {dict(response.headers)}")
@@ -94,7 +104,7 @@ class BaseApiClient:
                 if is_rate_limited(response):
                     logger.warning(f"Rate limited - status: {response.status_code}")
                     if attempt < self.max_retries:
-                        retry_after = int(response.headers.get('Retry-After', 60))
+                        retry_after = int(response.headers.get("Retry-After", 60))
                         logger.info(f"Waiting {retry_after}s before retry")
                         time.sleep(retry_after)
                         attempt += 1
@@ -110,21 +120,34 @@ class BaseApiClient:
 
                     # Provide specific guidance for common errors
                     if response.status_code == 401:
-                        logger.error("Authentication failed. Please check your API key.")
-                        logger.error("You can get an API key from: https://dip.bundestag.de/über-dip/hilfe/api")
+                        logger.error(
+                            "Authentication failed. Please check your API key."
+                        )
+                        logger.error(
+                            "You can get an API key from: https://dip.bundestag.de/über-dip/hilfe/api"
+                        )
                     elif response.status_code == 403:
-                        logger.error("Access forbidden. Your API key may not have the required permissions.")
+                        logger.error(
+                            "Access forbidden. Your API key may not have the required permissions."
+                        )
                     elif response.status_code == 429:
-                        logger.error("Rate limit exceeded. Please wait before making more requests.")
+                        logger.error(
+                            "Rate limit exceeded. Please wait before making more requests."
+                        )
 
                     raise e
 
                 # Cache successful responses
-                if self.enable_cache and use_cache and self.cache and response.status_code == 200:
+                if (
+                    self.enable_cache
+                    and use_cache
+                    and self.cache
+                    and response.status_code == 200
+                ):
                     logger.debug("Caching successful response")
                     cache_data = {
-                        'content': response.content,
-                        'headers': dict(response.headers)
+                        "content": response.content,
+                        "headers": dict(response.headers),
                     }
                     self.cache.set(url, cache_data, params)
 
@@ -133,7 +156,11 @@ class BaseApiClient:
 
             except requests.RequestException as e:
                 logger.error(f"RequestException on attempt {attempt + 1}: {e}")
-                if attempt < self.max_retries and response and should_retry(response, attempt, self.max_retries):
+                if (
+                    attempt < self.max_retries
+                    and response
+                    and should_retry(response, attempt, self.max_retries)
+                ):
                     logger.info(f"Retrying request (attempt {attempt + 1})")
                     attempt += 1
                     continue
@@ -182,7 +209,9 @@ class BaseApiClient:
 
         return url
 
-    def _fetch_single_item(self, endpoint: str, item_id: int) -> Optional[Dict[str, Any]]:
+    def _fetch_single_item(
+        self, endpoint: str, item_id: int
+    ) -> Optional[Dict[str, Any]]:
         """
         Fetch a single item by ID.
 
@@ -198,7 +227,7 @@ class BaseApiClient:
         if response is None:
             return None
         data = response.json()
-        if data and 'documents' in data:
-            documents = data['documents']
+        if data and "documents" in data:
+            documents = data["documents"]
             return documents[0] if documents else None
         return None

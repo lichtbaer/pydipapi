@@ -23,17 +23,19 @@ class DocumentParser(BaseParser):
 
         # Document type patterns
         self._doc_type_patterns = {
-            'kleine_anfrage': r'kleine\s+anfrage',
-            'grosse_anfrage': r'große\s+anfrage',
-            'antrag': r'antrag',
-            'gesetzentwurf': r'gesetzentwurf',
-            'bericht': r'bericht',
-            'beschlussempfehlung': r'beschlussempfehlung',
-            'stellungnahme': r'stellungnahme',
-            'protokoll': r'protokoll',
+            "kleine_anfrage": r"kleine\s+anfrage",
+            "grosse_anfrage": r"große\s+anfrage",
+            "antrag": r"antrag",
+            "gesetzentwurf": r"gesetzentwurf",
+            "bericht": r"bericht",
+            "beschlussempfehlung": r"beschlussempfehlung",
+            "stellungnahme": r"stellungnahme",
+            "protokoll": r"protokoll",
         }
 
-    def parse(self, data: Union[Dict[str, Any], List[Dict[str, Any]]]) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
+    def parse(
+        self, data: Union[Dict[str, Any], List[Dict[str, Any]]]
+    ) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
         """
         Parse document data and extract structured information.
 
@@ -64,19 +66,19 @@ class DocumentParser(BaseParser):
         parsed = doc.copy()
 
         # Extract basic information
-        parsed['parsed'] = {
-            'document_type': self._extract_document_type(doc),
-            'authors': self._extract_authors(doc),
-            'dates': self._extract_dates(doc),
-            'content_summary': self._extract_content_summary(doc),
-            'references': self._extract_references(doc),
-            'parties': self._extract_parties_from_doc(doc),
-            'committees': self._extract_committees_from_doc(doc),
-            'laws': self._extract_laws_from_doc(doc),
-            'links': self._extract_links_from_doc(doc),
-            'emails': self._extract_emails_from_doc(doc),
-            'phone_numbers': self._extract_phone_numbers_from_doc(doc),
-            'numbers': self._extract_numbers_from_doc(doc),
+        parsed["parsed"] = {
+            "document_type": self._extract_document_type(doc),
+            "authors": self._extract_authors(doc),
+            "dates": self._extract_dates(doc),
+            "content_summary": self._extract_content_summary(doc),
+            "references": self._extract_references(doc),
+            "parties": self._extract_parties_from_doc(doc),
+            "committees": self._extract_committees_from_doc(doc),
+            "laws": self._extract_laws_from_doc(doc),
+            "links": self._extract_links_from_doc(doc),
+            "emails": self._extract_emails_from_doc(doc),
+            "phone_numbers": self._extract_phone_numbers_from_doc(doc),
+            "numbers": self._extract_numbers_from_doc(doc),
         }
 
         return parsed
@@ -92,13 +94,13 @@ class DocumentParser(BaseParser):
             Document type or None
         """
         # Check explicit document type field
-        doc_type = doc.get('dokumentart', doc.get('type', ''))
+        doc_type = doc.get("dokumentart", doc.get("type", ""))
         if doc_type:
-            return doc_type.lower().replace(' ', '_')
+            return doc_type.lower().replace(" ", "_")
 
         # Extract from title or content
-        title = doc.get('titel', '')
-        content = doc.get('text', '')
+        title = doc.get("titel", "")
+        content = doc.get("text", "")
         combined_text = f"{title} {content}".lower()
 
         for doc_type, pattern in self._doc_type_patterns.items():
@@ -120,33 +122,37 @@ class DocumentParser(BaseParser):
         authors = []
 
         # Check for explicit author fields
-        if 'autoren' in doc:
-            for author in doc['autoren']:
+        if "autoren" in doc:
+            for author in doc["autoren"]:
                 if isinstance(author, dict):
-                    authors.append({
-                        'name': author.get('name', ''),
-                        'party': author.get('fraktion', ''),
-                        'constituency': author.get('wahlkreis', ''),
-                        'role': author.get('rolle', ''),
-                    })
+                    authors.append(
+                        {
+                            "name": author.get("name", ""),
+                            "party": author.get("fraktion", ""),
+                            "constituency": author.get("wahlkreis", ""),
+                            "role": author.get("rolle", ""),
+                        }
+                    )
                 elif isinstance(author, str):
-                    authors.append({'name': author})
+                    authors.append({"name": author})
 
         # Extract from text content
-        text = doc.get('text', '')
-        title = doc.get('titel', '')
+        text = doc.get("text", "")
+        title = doc.get("titel", "")
         combined_text = f"{title} {text}"
 
         if combined_text:
             # Look for patterns like "von [Name] (CDU/CSU)" or "der Abgeordneten [Name] (CDU/CSU)"
             author_patterns = [
-                r'von\s+([^\(\)]+?)\s*\(([^\)]+)\)',
-                r'der\s+Abgeordneten\s+([^\(\)]+?)\s*\(([^\)]+)\)',
-                r'([^\(\)]+?)\s*\(([^\)]+)\)'  # General pattern
+                r"von\s+([^\(\)]+?)\s*\(([^\)]+)\)",
+                r"der\s+Abgeordneten\s+([^\(\)]+?)\s*\(([^\)]+)\)",
+                r"([^\(\)]+?)\s*\(([^\)]+)\)",  # General pattern
             ]
 
             for pattern in author_patterns:
-                matches = re.findall(pattern, combined_text, re.IGNORECASE | re.MULTILINE)
+                matches = re.findall(
+                    pattern, combined_text, re.IGNORECASE | re.MULTILINE
+                )
 
                 for match in matches:
                     if isinstance(match, tuple) and len(match) >= 2:
@@ -154,11 +160,13 @@ class DocumentParser(BaseParser):
                         party = match[1].strip()
 
                         # Skip if it's already added
-                        if not any(a['name'] == name for a in authors):
-                            authors.append({
-                                'name': name,
-                                'party': party,
-                            })
+                        if not any(a["name"] == name for a in authors):
+                            authors.append(
+                                {
+                                    "name": name,
+                                    "party": party,
+                                }
+                            )
 
         return authors
 
@@ -175,18 +183,18 @@ class DocumentParser(BaseParser):
         dates = {}
 
         # Extract from explicit date fields
-        date_fields = ['datum', 'erstellt', 'veröffentlicht', 'eingereicht']
+        date_fields = ["datum", "erstellt", "veröffentlicht", "eingereicht"]
         for field in date_fields:
             if field in doc:
                 dates[field] = self.parse_date(str(doc[field]))
 
         # Extract from text content
-        text = doc.get('text', '')
+        text = doc.get("text", "")
         if text:
             # Look for date patterns
             date_patterns = [
-                r'(\d{1,2}\.\d{1,2}\.\d{4})',  # DD.MM.YYYY
-                r'(\d{4}-\d{1,2}-\d{1,2})',    # YYYY-MM-DD
+                r"(\d{1,2}\.\d{1,2}\.\d{4})",  # DD.MM.YYYY
+                r"(\d{4}-\d{1,2}-\d{1,2})",  # YYYY-MM-DD
             ]
 
             for pattern in date_patterns:
@@ -194,7 +202,7 @@ class DocumentParser(BaseParser):
                 for match in matches:
                     parsed_date = self.parse_date(match)
                     if parsed_date:
-                        dates['extracted_date'] = parsed_date
+                        dates["extracted_date"] = parsed_date
                         break
 
         return dates
@@ -209,7 +217,7 @@ class DocumentParser(BaseParser):
         Returns:
             Content summary dictionary
         """
-        text = doc.get('text', '')
+        text = doc.get("text", "")
         if not text:
             return {}
 
@@ -218,18 +226,21 @@ class DocumentParser(BaseParser):
 
         # Extract key information
         summary = {
-            'word_count': len(cleaned_text.split()),
-            'character_count': len(cleaned_text),
-            'has_tables': 'tabelle' in cleaned_text.lower(),
-            'has_figures': any(word in cleaned_text.lower() for word in ['abbildung', 'grafik', 'diagramm']),
-            'has_references': len(self.extract_links(cleaned_text)) > 0,
-            'has_law_references': len(self.extract_laws(cleaned_text)) > 0,
+            "word_count": len(cleaned_text.split()),
+            "character_count": len(cleaned_text),
+            "has_tables": "tabelle" in cleaned_text.lower(),
+            "has_figures": any(
+                word in cleaned_text.lower()
+                for word in ["abbildung", "grafik", "diagramm"]
+            ),
+            "has_references": len(self.extract_links(cleaned_text)) > 0,
+            "has_law_references": len(self.extract_laws(cleaned_text)) > 0,
         }
 
         # Extract first few sentences as preview
-        sentences = cleaned_text.split('.')
+        sentences = cleaned_text.split(".")
         if sentences:
-            summary['preview'] = '. '.join(sentences[:3]).strip()
+            summary["preview"] = ". ".join(sentences[:3]).strip()
 
         return summary
 
@@ -243,54 +254,54 @@ class DocumentParser(BaseParser):
         Returns:
             Dictionary of reference types and their values
         """
-        text = doc.get('text', '')
+        text = doc.get("text", "")
         if not text:
             return {}
 
         return {
-            'links': self.extract_links(text),
-            'laws': self.extract_laws(text),
-            'emails': self.extract_emails(text),
-            'phone_numbers': self.extract_phone_numbers(text),
+            "links": self.extract_links(text),
+            "laws": self.extract_laws(text),
+            "emails": self.extract_emails(text),
+            "phone_numbers": self.extract_phone_numbers(text),
         }
 
     def _extract_parties_from_doc(self, doc: Dict[str, Any]) -> List[str]:
         """Extract political parties mentioned in document."""
-        text = doc.get('text', '')
-        title = doc.get('titel', '')
+        text = doc.get("text", "")
+        title = doc.get("titel", "")
         combined_text = f"{title} {text}"
         return self.extract_parties(combined_text)
 
     def _extract_committees_from_doc(self, doc: Dict[str, Any]) -> List[str]:
         """Extract committees mentioned in document."""
-        text = doc.get('text', '')
-        title = doc.get('titel', '')
+        text = doc.get("text", "")
+        title = doc.get("titel", "")
         combined_text = f"{title} {text}"
         return self.extract_committees(combined_text)
 
     def _extract_laws_from_doc(self, doc: Dict[str, Any]) -> List[str]:
         """Extract law references from document."""
-        text = doc.get('text', '')
-        title = doc.get('titel', '')
+        text = doc.get("text", "")
+        title = doc.get("titel", "")
         combined_text = f"{title} {text}"
         return self.extract_laws(combined_text)
 
     def _extract_links_from_doc(self, doc: Dict[str, Any]) -> List[str]:
         """Extract links from document."""
-        text = doc.get('text', '')
+        text = doc.get("text", "")
         return self.extract_links(text)
 
     def _extract_emails_from_doc(self, doc: Dict[str, Any]) -> List[str]:
         """Extract email addresses from document."""
-        text = doc.get('text', '')
+        text = doc.get("text", "")
         return self.extract_emails(text)
 
     def _extract_phone_numbers_from_doc(self, doc: Dict[str, Any]) -> List[str]:
         """Extract phone numbers from document."""
-        text = doc.get('text', '')
+        text = doc.get("text", "")
         return self.extract_phone_numbers(text)
 
     def _extract_numbers_from_doc(self, doc: Dict[str, Any]) -> List[Union[int, float]]:
         """Extract numbers from document."""
-        text = doc.get('text', '')
+        text = doc.get("text", "")
         return self.extract_numbers(text)

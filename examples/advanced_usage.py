@@ -18,7 +18,7 @@ def main():
     """Demonstrate advanced features of the pydipapi library."""
 
     # Get API key from environment
-    api_key = os.getenv('DIP_API_KEY')
+    api_key = os.getenv("DIP_API_KEY")
     if not api_key:
         print("Please set the DIP_API_KEY environment variable")
         return
@@ -29,7 +29,7 @@ def main():
         rate_limit_delay=0.1,  # 100ms between requests
         max_retries=3,
         enable_cache=True,
-        cache_ttl=3600  # 1 hour cache
+        cache_ttl=3600,  # 1 hour cache
     )
 
     print("=== Advanced pydipapi Usage Examples ===\n")
@@ -132,9 +132,9 @@ def main():
         for i in range(3):
             try:
                 activities = dip.get_aktivitaet(anzahl=2)
-                print(f"Request {i+1}: Retrieved {len(activities)} activities")
+                print(f"Request {i + 1}: Retrieved {len(activities)} activities")
             except Exception as e:
-                print(f"Request {i+1} failed: {e}")
+                print(f"Request {i + 1} failed: {e}")
 
     except Exception as e:
         print(f"Error handling test failed: {e}")

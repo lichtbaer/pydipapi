@@ -26,9 +26,15 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
     when making multiple concurrent requests.
     """
 
-    def __init__(self, api_key: str, base_url: str = "https://search.dip.bundestag.de/api/v1",
-                 rate_limit_delay: float = 0.1, max_retries: int = 3,
-                 enable_cache: bool = True, cache_ttl: int = 3600):
+    def __init__(
+        self,
+        api_key: str,
+        base_url: str = "https://search.dip.bundestag.de/api/v1",
+        rate_limit_delay: float = 0.1,
+        max_retries: int = 3,
+        enable_cache: bool = True,
+        cache_ttl: int = 3600,
+    ):
         """
         Initialize the async DIP API client.
 
@@ -40,7 +46,9 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             enable_cache (bool): Whether to enable caching.
             cache_ttl (int): Cache time to live in seconds.
         """
-        super().__init__(api_key, base_url, rate_limit_delay, max_retries, enable_cache, cache_ttl)
+        super().__init__(
+            api_key, base_url, rate_limit_delay, max_retries, enable_cache, cache_ttl
+        )
 
     def _build_url(self, endpoint: str, **kwargs) -> str:
         """
@@ -53,7 +61,7 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
         Returns:
             str: The complete URL including API key.
         """
-        kwargs['apikey'] = self.api_key
+        kwargs["apikey"] = self.api_key
         return super()._build_url(endpoint, **kwargs)
 
     async def _request_json(self, url: str) -> Optional[Dict[str, Any]]:
@@ -71,7 +79,9 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             logger.error(f"Error making async request to {url}: {e}")
             return None
 
-    async def _fetch_paginated_data(self, endpoint: str, count: int, **params) -> List[Dict[str, Any]]:
+    async def _fetch_paginated_data(
+        self, endpoint: str, count: int, **params
+    ) -> List[Dict[str, Any]]:
         """
         Fetch paginated data from the API asynchronously.
 
@@ -83,9 +93,13 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
         Returns:
             List[Dict[str, Any]]: List of documents.
         """
-        return await fetch_paginated_async(self._build_url, self._request_json, endpoint, count, **params)
+        return await fetch_paginated_async(
+            self._build_url, self._request_json, endpoint, count, **params
+        )
 
-    async def _fetch_single_item(self, endpoint: str, item_id: int) -> Optional[Dict[str, Any]]:
+    async def _fetch_single_item(
+        self, endpoint: str, item_id: int
+    ) -> Optional[Dict[str, Any]]:
         url = f"{self.base_url}/{endpoint}/{item_id}/"
         return await self._request_json(url)
 
@@ -101,7 +115,7 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             List[dict]: A list of person dictionaries.
         """
         try:
-            result = await self._fetch_paginated_data('person', anzahl, **filters)
+            result = await self._fetch_paginated_data("person", anzahl, **filters)
             return result or []
         except Exception as e:
             logger.error(f"Error fetching persons: {e}")
@@ -122,10 +136,10 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
 
         try:
             # Use batch endpoint if available, otherwise fetch individually
-            url = self._build_url('person', f_id=ids)
+            url = self._build_url("person", f_id=ids)
             data = await self._request_json(url)
-            if data and 'documents' in data:
-                docs = data['documents']
+            if data and "documents" in data:
+                docs = data["documents"]
                 return docs if isinstance(docs, list) else []
             return []
         except Exception as e:
@@ -146,10 +160,10 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             return []
 
         try:
-            url = self._build_url('aktivitaet', f_id=ids)
+            url = self._build_url("aktivitaet", f_id=ids)
             data = await self._request_json(url)
-            if data and 'documents' in data:
-                docs = data['documents']
+            if data and "documents" in data:
+                docs = data["documents"]
                 return docs if isinstance(docs, list) else []
             return []
         except Exception as e:
@@ -171,18 +185,20 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             return []
 
         try:
-            endpoint = 'drucksache-text' if text else 'drucksache'
+            endpoint = "drucksache-text" if text else "drucksache"
             url = self._build_url(endpoint, f_id=ids)
             data = await self._request_json(url)
-            if data and 'documents' in data:
-                docs = data['documents']
+            if data and "documents" in data:
+                docs = data["documents"]
                 return docs if isinstance(docs, list) else []
             return []
         except Exception as e:
             logger.error(f"Error fetching document IDs: {e}")
             return []
 
-    async def get_plenarprotokoll_ids(self, ids: List[int], text: bool = True) -> List[dict]:
+    async def get_plenarprotokoll_ids(
+        self, ids: List[int], text: bool = True
+    ) -> List[dict]:
         """
         Retrieve multiple plenary protocols by their IDs asynchronously.
 
@@ -197,11 +213,11 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             return []
 
         try:
-            endpoint = 'plenarprotokoll-text' if text else 'plenarprotokoll'
+            endpoint = "plenarprotokoll-text" if text else "plenarprotokoll"
             url = self._build_url(endpoint, f_id=ids)
             data = await self._request_json(url)
-            if data and 'documents' in data:
-                docs = data['documents']
+            if data and "documents" in data:
+                docs = data["documents"]
                 return docs if isinstance(docs, list) else []
             return []
         except Exception as e:
@@ -222,10 +238,10 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             return []
 
         try:
-            url = self._build_url('vorgang', f_id=ids)
+            url = self._build_url("vorgang", f_id=ids)
             data = await self._request_json(url)
-            if data and 'documents' in data:
-                docs = data['documents']
+            if data and "documents" in data:
+                docs = data["documents"]
                 return docs if isinstance(docs, list) else []
             return []
         except Exception as e:
@@ -246,17 +262,19 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             return []
 
         try:
-            url = self._build_url('vorgangsposition', f_id=ids)
+            url = self._build_url("vorgangsposition", f_id=ids)
             data = await self._request_json(url)
-            if data and 'documents' in data:
-                docs = data['documents']
+            if data and "documents" in data:
+                docs = data["documents"]
                 return docs if isinstance(docs, list) else []
             return []
         except Exception as e:
             logger.error(f"Error fetching proceeding position IDs: {e}")
             return []
 
-    async def search_documents(self, query: str, anzahl: int = 10, **filters) -> List[dict]:
+    async def search_documents(
+        self, query: str, anzahl: int = 10, **filters
+    ) -> List[dict]:
         """
         Search for documents asynchronously.
 
@@ -269,14 +287,16 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             List[dict]: A list of matching documents.
         """
         try:
-            filters['q'] = query
-            result = await self._fetch_paginated_data('search', anzahl, **filters)
+            filters["q"] = query
+            result = await self._fetch_paginated_data("search", anzahl, **filters)
             return result or []
         except Exception as e:
             logger.error(f"Error searching documents: {e}")
             return []
 
-    async def get_recent_activities(self, days: int = 7, anzahl: int = 20) -> List[dict]:
+    async def get_recent_activities(
+        self, days: int = 7, anzahl: int = 20
+    ) -> List[dict]:
         """
         Get recent activities from the last N days asynchronously.
 
@@ -290,15 +310,16 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
         try:
             # Calculate date range
             from datetime import datetime, timedelta
+
             end_date = datetime.now()
             start_date = end_date - timedelta(days=days)
 
             filters = {
-                'datum_von': start_date.strftime('%Y-%m-%d'),
-                'datum_bis': end_date.strftime('%Y-%m-%d')
+                "datum_von": start_date.strftime("%Y-%m-%d"),
+                "datum_bis": end_date.strftime("%Y-%m-%d"),
             }
 
-            result = await self._fetch_paginated_data('aktivitaet', anzahl, **filters)
+            result = await self._fetch_paginated_data("aktivitaet", anzahl, **filters)
             return result or []
         except Exception as e:
             logger.error(f"Error fetching recent activities: {e}")
@@ -316,13 +337,15 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             List[dict]: A list of matching persons.
         """
         try:
-            result = await self._fetch_paginated_data('person', anzahl, q=name)
+            result = await self._fetch_paginated_data("person", anzahl, q=name)
             return result or []
         except Exception as e:
             logger.error(f"Error searching persons by name: {e}")
             return []
 
-    async def get_documents_by_type(self, doc_type: str, anzahl: int = 20, **filters) -> List[dict]:
+    async def get_documents_by_type(
+        self, doc_type: str, anzahl: int = 20, **filters
+    ) -> List[dict]:
         """
         Get documents by type asynchronously.
 
@@ -335,14 +358,16 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             List[dict]: A list of documents of the specified type.
         """
         try:
-            filters['dokumentart'] = doc_type
-            result = await self._fetch_paginated_data('drucksache', anzahl, **filters)
+            filters["dokumentart"] = doc_type
+            result = await self._fetch_paginated_data("drucksache", anzahl, **filters)
             return result or []
         except Exception as e:
             logger.error(f"Error fetching documents by type: {e}")
             return []
 
-    async def get_proceedings_by_type(self, proc_type: str, anzahl: int = 20, **filters) -> List[dict]:
+    async def get_proceedings_by_type(
+        self, proc_type: str, anzahl: int = 20, **filters
+    ) -> List[dict]:
         """
         Get proceedings by type asynchronously.
 
@@ -355,8 +380,8 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             List[dict]: A list of proceedings of the specified type.
         """
         try:
-            filters['vorgangstyp'] = proc_type
-            result = await self._fetch_paginated_data('vorgang', anzahl, **filters)
+            filters["vorgangstyp"] = proc_type
+            result = await self._fetch_paginated_data("vorgang", anzahl, **filters)
             return result or []
         except Exception as e:
             logger.error(f"Error fetching proceedings by type: {e}")
@@ -372,7 +397,7 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
         Returns:
             Optional[dict]: The person dictionary or None if not found.
         """
-        return await self._fetch_single_item('person', id)
+        return await self._fetch_single_item("person", id)
 
     async def get_aktivitaet(self, anzahl: int = 100, **filters) -> List[dict]:
         """
@@ -386,13 +411,15 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             List[dict]: A list of activity dictionaries.
         """
         try:
-            result = await self._fetch_paginated_data('aktivitaet', anzahl, **filters)
+            result = await self._fetch_paginated_data("aktivitaet", anzahl, **filters)
             return result or []
         except Exception as e:
             logger.error(f"Error fetching activities: {e}")
             return []
 
-    async def get_drucksache(self, anzahl: int = 10, text: bool = True, **filters) -> List[dict]:
+    async def get_drucksache(
+        self, anzahl: int = 10, text: bool = True, **filters
+    ) -> List[dict]:
         """
         Retrieve a list of documents (Drucksache) from the API asynchronously.
 
@@ -405,14 +432,16 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             List[dict]: A list of document dictionaries.
         """
         try:
-            endpoint = 'drucksache-text' if text else 'drucksache'
+            endpoint = "drucksache-text" if text else "drucksache"
             result = await self._fetch_paginated_data(endpoint, anzahl, **filters)
             return result or []
         except Exception as e:
             logger.error(f"Error fetching documents: {e}")
             return []
 
-    async def get_plenarprotokoll(self, anzahl: int = 10, text: bool = True, **filters) -> List[dict]:
+    async def get_plenarprotokoll(
+        self, anzahl: int = 10, text: bool = True, **filters
+    ) -> List[dict]:
         """
         Retrieve a list of plenary protocols from the API asynchronously.
 
@@ -425,7 +454,7 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             List[dict]: A list of protocol dictionaries.
         """
         try:
-            endpoint = 'plenarprotokoll-text' if text else 'plenarprotokoll'
+            endpoint = "plenarprotokoll-text" if text else "plenarprotokoll"
             result = await self._fetch_paginated_data(endpoint, anzahl, **filters)
             return result or []
         except Exception as e:
@@ -444,13 +473,15 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             List[dict]: A list of proceedings.
         """
         try:
-            result = await self._fetch_paginated_data('vorgang', anzahl, **filters)
+            result = await self._fetch_paginated_data("vorgang", anzahl, **filters)
             return result or []
         except Exception as e:
             logger.error(f"Error fetching proceedings: {e}")
             return []
 
-    async def get_vorgangsposition(self, anzahl: int = 10, **filters) -> List[Vorgangspositionbezug]:
+    async def get_vorgangsposition(
+        self, anzahl: int = 10, **filters
+    ) -> List[Vorgangspositionbezug]:
         """
         Retrieve a list of proceeding positions (Vorgangsposition) from the API asynchronously.
 
@@ -462,7 +493,9 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             List[Vorgangspositionbezug]: A list of proceeding positions.
         """
         try:
-            documents = await self._fetch_paginated_data('vorgangsposition', anzahl, **filters)
+            documents = await self._fetch_paginated_data(
+                "vorgangsposition", anzahl, **filters
+            )
             return parse_obj_as(List[Vorgangspositionbezug], documents)
         except Exception as e:
             logger.error(f"Error fetching proceeding positions: {e}")
@@ -471,31 +504,31 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
     # Single item retrieval methods
     async def get_aktivitaet_by_id(self, id: int) -> Optional[dict]:
         """Retrieve a single activity by its ID asynchronously."""
-        return await self._fetch_single_item('aktivitaet', id)
+        return await self._fetch_single_item("aktivitaet", id)
 
     async def get_drucksache_by_id(self, id: int) -> Optional[dict]:
         """Retrieve a single document (Drucksache) by its ID asynchronously."""
-        return await self._fetch_single_item('drucksache', id)
+        return await self._fetch_single_item("drucksache", id)
 
     async def get_drucksache_text_by_id(self, id: int) -> Optional[dict]:
         """Retrieve a single document (Drucksache) with text by its ID asynchronously."""
-        return await self._fetch_single_item('drucksache-text', id)
+        return await self._fetch_single_item("drucksache-text", id)
 
     async def get_plenarprotokoll_by_id(self, id: int) -> Optional[dict]:
         """Retrieve a single plenary protocol by its ID asynchronously."""
-        return await self._fetch_single_item('plenarprotokoll', id)
+        return await self._fetch_single_item("plenarprotokoll", id)
 
     async def get_plenarprotokoll_text_by_id(self, id: int) -> Optional[dict]:
         """Retrieve a single plenary protocol (with text) by its ID asynchronously."""
-        return await self._fetch_single_item('plenarprotokoll-text', id)
+        return await self._fetch_single_item("plenarprotokoll-text", id)
 
     async def get_vorgang_by_id(self, id: int) -> Optional[dict]:
         """Retrieve a single proceeding (Vorgang) by its ID asynchronously."""
-        return await self._fetch_single_item('vorgang', id)
+        return await self._fetch_single_item("vorgang", id)
 
     async def get_vorgangsposition_by_id(self, id: int) -> Optional[dict]:
         """Retrieve a single proceeding position (Vorgangsposition) by its ID asynchronously."""
-        return await self._fetch_single_item('vorgangsposition', id)
+        return await self._fetch_single_item("vorgangsposition", id)
 
     # Cache management methods
     def clear_cache(self) -> None:
@@ -508,21 +541,25 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
         if self.cache:
             self.cache.clear_expired()
 
-    async def get_person_typed(self, anzahl: int = 100, **filters) -> List['Person']:
+    async def get_person_typed(self, anzahl: int = 100, **filters) -> List["Person"]:
         """
         Retrieve persons and return typed models (async).
         """
         raw = await self.get_person(anzahl=anzahl, **filters)
         return parse_obj_as(List[Person], raw)
 
-    async def get_drucksache_typed(self, anzahl: int = 100, **filters) -> List['Document']:
+    async def get_drucksache_typed(
+        self, anzahl: int = 100, **filters
+    ) -> List["Document"]:
         """
         Retrieve documents and return typed models (async).
         """
         raw = await self.get_drucksache(anzahl=anzahl, **filters)
         return parse_obj_as(List[Document], raw)
 
-    async def get_aktivitaet_typed(self, anzahl: int = 100, **filters) -> List['Activity']:
+    async def get_aktivitaet_typed(
+        self, anzahl: int = 100, **filters
+    ) -> List["Activity"]:
         """
         Retrieve activities and return typed models (async).
         """

@@ -1,6 +1,7 @@
 """
 Shared pagination helpers for DIP API clients.
 """
+
 from __future__ import annotations
 
 import logging
@@ -38,7 +39,7 @@ def fetch_paginated_sync(
     while len(documents) < count:
         # Add cursor to parameters if we have one
         if cursor:
-            params['cursor'] = cursor
+            params["cursor"] = cursor
 
         url = build_url(endpoint, **params)
         logger.debug(f"[sync] Making request to URL: {url}")
@@ -49,18 +50,20 @@ def fetch_paginated_sync(
             break
 
         logger.debug(f"[sync] Response data type: {type(data)}")
-        logger.debug(f"[sync] Response data keys: {list(data.keys()) if isinstance(data, dict) else 'Not a dict'}")
+        logger.debug(
+            f"[sync] Response data keys: {list(data.keys()) if isinstance(data, dict) else 'Not a dict'}"
+        )
 
         if not data:
             logger.warning("[sync] Empty response data")
             break
 
-        new_documents = data.get('documents', []) if isinstance(data, dict) else []
+        new_documents = data.get("documents", []) if isinstance(data, dict) else []
         logger.debug(f"[sync] Retrieved {len(new_documents)} new documents")
         documents.extend(new_documents)
 
         # Update cursor for next page
-        cursor = data.get('cursor', '') if isinstance(data, dict) else ''
+        cursor = data.get("cursor", "") if isinstance(data, dict) else ""
         logger.debug(f"[sync] Next cursor: {cursor}")
 
         # If no more documents or no cursor, break
@@ -101,7 +104,7 @@ async def fetch_paginated_async(
     while len(documents) < count:
         # Add cursor to parameters if we have one
         if cursor:
-            params['cursor'] = cursor
+            params["cursor"] = cursor
 
         url = build_url(endpoint, **params)
         logger.debug(f"[async] Making request to URL: {url}")
@@ -112,18 +115,20 @@ async def fetch_paginated_async(
             break
 
         logger.debug(f"[async] Response data type: {type(data)}")
-        logger.debug(f"[async] Response data keys: {list(data.keys()) if isinstance(data, dict) else 'Not a dict'}")
+        logger.debug(
+            f"[async] Response data keys: {list(data.keys()) if isinstance(data, dict) else 'Not a dict'}"
+        )
 
         if not data:
             logger.warning("[async] Empty response data")
             break
 
-        new_documents = data.get('documents', []) if isinstance(data, dict) else []
+        new_documents = data.get("documents", []) if isinstance(data, dict) else []
         logger.debug(f"[async] Retrieved {len(new_documents)} new documents")
         documents.extend(new_documents)
 
         # Update cursor for next page
-        cursor = data.get('cursor', '') if isinstance(data, dict) else ''
+        cursor = data.get("cursor", "") if isinstance(data, dict) else ""
         logger.debug(f"[async] Next cursor: {cursor}")
 
         # If no more documents or no cursor, break
