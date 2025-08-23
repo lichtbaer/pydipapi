@@ -100,15 +100,14 @@ for member in parsed_members:
 
 ```python
 from pydipapi import DipAnfrage
-from pydipapi.util.cache import DipCache
+from pydipapi.util.cache import SimpleCache
 
 # Configure caching
-cache = DipCache(
-    max_size=1000,      # Maximum number of cached items
-    ttl_seconds=3600    # Cache TTL: 1 hour
+cache = SimpleCache(
+    ttl=3600  # Cache TTL: 1 hour
 )
 
-api = DipAnfrage(api_key="your_api_key_here", cache=cache)
+api = DipAnfrage(api_key="your_api_key_here", enable_cache=True, cache_ttl=3600)
 
 # First call hits the API
 members = api.get_person(anzahl=10)

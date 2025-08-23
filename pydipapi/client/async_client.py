@@ -7,6 +7,8 @@ import logging
 from typing import Any, Dict, Optional
 
 import aiohttp
+import json
+from typing import cast
 
 from ..util.cache import SimpleCache
 from ..util.error_handler import is_rate_limited, should_retry
@@ -50,7 +52,7 @@ class AsyncBaseApiClient:
         return self._session
 
     async def _make_request(self, url: str, params: Optional[Dict[str, Any]] = None,
-                           use_cache: bool = True) -> Optional[aiohttp.ClientResponse]:
+                       use_cache: bool = True) -> Optional[aiohttp.ClientResponse]:
         """
         Make an async API request with rate limiting, retry logic, and optional caching.
 
@@ -74,9 +76,29 @@ class AsyncBaseApiClient:
             cached_data = self.cache.get(url, params)
             if cached_data:
                 logger.debug("Returning cached response")
-                # Create a mock response object with cached data
-                # Note: This is a simplified approach for async
-                return None  # We'll handle cached data differently
+                class _CachedResponse:
+                    def __init__(self, data_json: Optional[Dict[str, Any]], headers: Dict[str, Any]):
+                        self._data_json = data_json or {}
+                        self.headers = headers or {}
+                        self.status = 200
+
+                    async def json(self) -> Dict[str, Any]:
+                        return self._data_json
+
+                    async def text(self) -> str:
+                        return json.dumps(self._data_json)
+
+                # Support both legacy 'content' bytes and new 'json' cache formats
+                data_json: Optional[Dict[str, Any]] = None
+                if 'json' in cached_data:
+                    data_json = cached_data.get('json')
+                elif 'content' in cached_data:
+                    try:
+                        data_json = json.loads(cached_data['content'].decode('utf-8'))
+                    except Exception:
+                        data_json = None
+                cached_resp = _CachedResponse(data_json, cached_data.get('headers', {}))
+                return cast(Optional[aiohttp.ClientResponse], cached_resp)
 
         session = await self._get_session()
         attempt = 0
@@ -134,15 +156,19 @@ class AsyncBaseApiClient:
 
                         raise e
 
-                    # Cache successful responses
+                    # Cache successful responses (store JSON to be JSON-serializable)
                     if self.enable_cache and use_cache and self.cache and response.status == 200:
                         logger.debug("Caching successful response")
-                        response_text = await response.text()
-                        cache_data = {
-                            'content': response_text.encode(),
-                            'headers': dict(response.headers)
-                        }
-                        self.cache.set(url, cache_data, params)
+                        try:
+                            response_json = await response.json()
+                            cache_data = {
+                                'json': response_json,
+                                'headers': dict(response.headers)
+                            }
+                            self.cache.set(url, cache_data, params)
+                        except Exception:
+                            # Fallback: ignore cache write errors silently (already logged by cache)
+                            pass
 
                     logger.debug(f"Request successful - status: {response.status}")
                     return response
@@ -168,7 +194,7 @@ class AsyncBaseApiClient:
         logger.error(f"Params: {params}")
         return None
 
-    def _build_url(self, endpoint: str, **kwargs) -> str:
+    def _build_url(self, endpoint: str, **kwargs: Any) -> str:
         """
         Build a URL for the given endpoint with optional parameters.
 
@@ -219,15 +245,15 @@ class AsyncBaseApiClient:
             return documents[0] if documents else None
         return None
 
-    async def close(self):
+    async def close(self) -> None:
         """Close the aiohttp session."""
         if self._session and not self._session.closed:
             await self._session.close()
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> 'AsyncBaseApiClient':
         """Async context manager entry."""
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """Async context manager exit."""
         await self.close()

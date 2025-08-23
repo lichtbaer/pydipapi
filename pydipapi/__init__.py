@@ -17,6 +17,13 @@ from .parsers import (
     PersonParser,
     ProtocolParser,
 )
+from .type import (
+    Person as Person,
+    Document as Document,
+    Activity as Activity,
+    Protocol as Protocol,
+    Vorgangspositionbezug,
+)
 
 __version__ = "0.3.0"
 __author__ = "Your Name"
@@ -32,4 +39,9 @@ __all__ = [
     "PersonParser",
     "ActivityParser",
     "ProtocolParser",
+    "Person",
+    "Document",
+    "Activity",
+    "Protocol",
+    "Vorgangspositionbezug",
 ]

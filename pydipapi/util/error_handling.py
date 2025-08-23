@@ -2,7 +2,7 @@
 Error handling utilities for the pydipapi package.
 """
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 
 import requests
 
@@ -39,7 +39,9 @@ def handle_api_response(response: requests.Response) -> Optional[Dict[str, Any]]
     """
     try:
         response.raise_for_status()
-        return response.json()
+        data = response.json()
+        # Ensure we return a mapping as documented
+        return cast(Optional[Dict[str, Any]], data if isinstance(data, dict) else None)
     except requests.exceptions.HTTPError as http_err:
         logger.error(f"HTTP error occurred: {http_err}")
         raise DipApiHttpError(response.status_code, str(http_err))

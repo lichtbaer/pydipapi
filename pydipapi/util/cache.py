@@ -7,7 +7,7 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 
 
 class SimpleCache:
@@ -72,7 +72,10 @@ class SimpleCache:
                 cache_file.unlink()
                 return None
 
-            return cached_data['data']
+            data_obj = cached_data.get('data')
+            if isinstance(data_obj, dict):
+                return cast(Dict[str, Any], data_obj)
+            return None
 
         except (json.JSONDecodeError, KeyError):
             # Invalid cache file, remove it
