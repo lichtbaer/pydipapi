@@ -40,7 +40,7 @@ class DipAnfrage(BaseApiClient):
         super().__init__(api_key, base_url, rate_limit_delay, max_retries, enable_cache, cache_ttl)
         self.documents: List[Dict[str, Any]] = []
 
-    def _make_request(self, url: str, params: Optional[Dict[str, Any]] = None, use_cache: bool = True) -> Optional[dict]:
+    def _make_request(self, url: str, params: Optional[Dict[str, Any]] = None, use_cache: bool = True) -> Optional[Dict[str, Any]]:
         """
         Make a request and return the parsed JSON data.
 
@@ -64,9 +64,10 @@ class DipAnfrage(BaseApiClient):
         logger.debug(f"Response headers: {dict(response.headers)}")
 
         try:
-            data = response.json()
+            data_raw = response.json()
+            data = data_raw if isinstance(data_raw, dict) else None
             logger.debug(f"Response data keys: {list(data.keys()) if isinstance(data, dict) else 'Not a dict'}")
-            logger.debug(f"Documents count: {len(data.get('documents', []))}")
+            logger.debug(f"Documents count: {len(data.get('documents', [])) if isinstance(data, dict) else 0}")
             return data
         except Exception as e:
             logger.error(f"Failed to parse JSON response: {e}")

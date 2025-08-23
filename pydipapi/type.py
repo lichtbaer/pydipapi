@@ -2,14 +2,14 @@ from datetime import date
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, Field, constr
+from pydantic import BaseModel, Field
 
 
 class Vorgangsbezug(BaseModel):
     """
     Represents a reference to a legislative process.
     """
-    id: constr(strict=True, pattern=r'^\d+$') = Field(..., json_schema_extra={"example": "84393", "description": "ID eines verknüpften Vorgangs"})
+    id: str = Field(..., json_schema_extra={"example": "84393", "description": "ID eines verknüpften Vorgangs"})
     titel: str = Field(..., json_schema_extra={"example": "Eröffnung der 1. Sitzung des 19. Deutschen Bundestages", "description": "Title of the process"})
     vorgangstyp: str = Field(..., json_schema_extra={"example": "Ansprache/Erklärung/Mitteilung", "description": "Type of the process"})
 
@@ -25,7 +25,7 @@ class VorgangVerlinkung(BaseModel):
     """
     Represents a link to a legislative process.
     """
-    id: constr(strict=True, pattern=r'^\d+$') = Field(..., json_schema_extra={"example": "282237", "description": "ID eines verknüpften Vorgangs"})
+    id: str = Field(..., json_schema_extra={"example": "282237", "description": "ID eines verknüpften Vorgangs"})
     verweisung: str = Field(..., json_schema_extra={"example": "Bericht", "description": "Reference type"})
     titel: str = Field(..., json_schema_extra={"example": "Zwischenbericht zur Reform des Bundeswahlrechts und zur Modernisierung der Parlamentsarbeit", "description": "Title of the reference"})
     wahlperiode: int = Field(..., json_schema_extra={"example": 19, "description": "Legislative period"})
@@ -86,7 +86,7 @@ class Person(BaseModel):
     """
     Typed representation of a person (parliament member).
     """
-    id: Optional[constr(strict=True, pattern=r'^\d+$')] = Field(None, description="DIP person ID")
+    id: Optional[str] = Field(None, description="DIP person ID")
     name: Optional[str] = Field(None, description="Full name")
     vorname: Optional[str] = Field(None, description="First name")
     nachname: Optional[str] = Field(None, description="Last name")
@@ -101,7 +101,7 @@ class Document(BaseModel):
     """
     Typed representation of a document (Drucksache).
     """
-    id: Optional[constr(strict=True, pattern=r'^\d+$')] = Field(None, description="DIP document ID")
+    id: Optional[str] = Field(None, description="DIP document ID")
     titel: Optional[str] = Field(None, description="Title")
     dokumentart: Optional[str] = Field(None, description="Document type raw")
     datum: Optional[date] = Field(None, description="Publication date")
@@ -112,7 +112,7 @@ class Activity(BaseModel):
     """
     Typed representation of an activity (Aktivität / Plenarereignis).
     """
-    id: Optional[constr(strict=True, pattern=r'^\d+$')] = Field(None, description="DIP activity ID")
+    id: Optional[str] = Field(None, description="DIP activity ID")
     titel: Optional[str] = Field(None, description="Activity title")
     sitzungsnummer: Optional[str] = Field(None, description="Session number")
     wahlperiode: Optional[int] = Field(None, description="Legislative period")
@@ -124,7 +124,7 @@ class Protocol(BaseModel):
     """
     Typed representation of a plenary protocol (Plenarprotokoll).
     """
-    id: Optional[constr(strict=True, pattern=r'^\d+$')] = Field(None, description="DIP protocol ID")
+    id: Optional[str] = Field(None, description="DIP protocol ID")
     sitzungsnummer: Optional[str] = Field(None, description="Session number")
     wahlperiode: Optional[int] = Field(None, description="Legislative period")
     sitzungsdatum: Optional[date] = Field(None, description="Session date")

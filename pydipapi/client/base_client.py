@@ -75,7 +75,7 @@ class BaseApiClient:
                 return response
 
         attempt = 0
-        response = None
+        response: Optional[requests.Response] = None
 
         while attempt <= self.max_retries:
             try:
@@ -152,7 +152,7 @@ class BaseApiClient:
         logger.error(f"Params: {params}")
         return None
 
-    def _build_url(self, endpoint: str, **kwargs) -> str:
+    def _build_url(self, endpoint: str, **kwargs: Any) -> str:
         """
         Build a URL for the given endpoint with optional parameters.
 

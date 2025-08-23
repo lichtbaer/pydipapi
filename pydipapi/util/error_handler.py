@@ -48,7 +48,7 @@ def is_rate_limited(response: _HasStatus) -> bool:
     code = getattr(response, 'status', None)
     if code is None:
         code = getattr(response, 'status_code', 0)
-    return int(code) == 429
+    return int(code or 0) == 429
 
 
 def should_retry(response: _HasStatus, attempt: int, max_retries: int) -> bool:
@@ -70,5 +70,5 @@ def should_retry(response: _HasStatus, attempt: int, max_retries: int) -> bool:
     code = getattr(response, 'status', None)
     if code is None:
         code = getattr(response, 'status_code', 0)
-    code = int(code)
+    code = int(code or 0)
     return code >= 500 or code == 429
