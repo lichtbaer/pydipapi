@@ -311,3 +311,9 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
+# Bandit security scanner reports
+bandit_report.json
+bandit-report.json
+bandit*.json
+.bandit
+
