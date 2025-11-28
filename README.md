@@ -1,6 +1,6 @@
 # PyDipAPI
 
-[![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
+[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![PyPI version](https://badge.fury.io/py/pydipapi.svg)](https://badge.fury.io/py/pydipapi)
 [![Documentation](https://img.shields.io/badge/docs-latest-brightgreen.svg)](https://lichtbaer.github.io/pydipapi/)
@@ -296,7 +296,7 @@ This project uses GitHub Actions for automated testing, building, and publishing
 ### Workflows
 
 - **CI Pipeline**: Runs on every push and PR
-  - ✅ Multi-Python version testing (3.8-3.12)
+  - ✅ Multi-Python version testing (3.10-3.12)
   - ✅ Cross-platform testing (Ubuntu, Windows, macOS)
   - ✅ Code quality checks (Ruff, Bandit, MyPy)
   - ✅ Security scanning
@@ -354,7 +354,7 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 
 ## 📋 Requirements
 
-- **Python**: 3.8 or higher
+- **Python**: 3.10 or higher
 - **Dependencies**: 
   - `requests >= 2.25.0`
   - `pydantic >= 1.8.0`
