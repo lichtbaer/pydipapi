@@ -212,14 +212,27 @@ url = f"{key}={value}"  # ❌ Kein URL-Encoding
 
 ## Zusammenfassung
 
-### Kritische Bugs (sofort beheben)
-1. ✅ Async Response Context Manager Bug
-2. ✅ State Management mit `self.documents`
+### Kritische Bugs (BEHOBEN ✅)
+1. ✅ **BEHOBEN** - Async Response Context Manager Bug
+   - **Fix:** Response-Daten werden jetzt innerhalb des Context Managers gelesen und in einem Wrapper-Objekt gespeichert
+   - **Datei:** `pydipapi/client/async_client.py:144-226`
+   
+2. ✅ **BEHOBEN** - State Management mit `self.documents`
+   - **Fix:** Alle Methoden verwenden jetzt lokale Variablen statt Instanz-State
+   - **Datei:** `pydipapi/api.py` - Entfernt `self.documents` aus `__init__` und allen Methoden
 
-### Wichtige Inkonsistenzen (beheben)
-3. ✅ Filter-Parameter in `get_recent_activities()`
-4. ✅ Endpoint in `search_documents()`
-5. ✅ Filter-Parameter in `get_documents_by_type()`
+### Wichtige Inkonsistenzen (BEHOBEN ✅)
+3. ✅ **BEHOBEN** - Filter-Parameter in `get_recent_activities()`
+   - **Fix:** Async-Version verwendet jetzt `aktualisiert_start` und `aktualisiert_end` wie sync-Version
+   - **Datei:** `pydipapi/async_api.py:317-320`
+   
+4. ✅ **BEHOBEN** - Endpoint in `search_documents()`
+   - **Fix:** Async-Version verwendet jetzt `"drucksache"` wie sync-Version
+   - **Datei:** `pydipapi/async_api.py:291`
+   
+5. ✅ **BEHOBEN** - Filter-Parameter in `get_documents_by_type()`
+   - **Fix:** Async-Version verwendet jetzt `drucksachetyp` wie sync-Version
+   - **Datei:** `pydipapi/async_api.py:361`
 
 ### Konfigurationsprobleme (beheben)
 6. ✅ Python Version Inkonsistenz

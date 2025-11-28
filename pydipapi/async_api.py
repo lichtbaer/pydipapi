@@ -288,7 +288,7 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
         """
         try:
             filters["q"] = query
-            result = await self._fetch_paginated_data("search", anzahl, **filters)
+            result = await self._fetch_paginated_data("drucksache", anzahl, **filters)
             return result or []
         except Exception as e:
             logger.error(f"Error searching documents: {e}")
@@ -315,8 +315,8 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             start_date = end_date - timedelta(days=days)
 
             filters = {
-                "datum_von": start_date.strftime("%Y-%m-%d"),
-                "datum_bis": end_date.strftime("%Y-%m-%d"),
+                "aktualisiert_start": start_date.strftime("%Y-%m-%dT%H:%M:%S"),
+                "aktualisiert_end": end_date.strftime("%Y-%m-%dT%H:%M:%S"),
             }
 
             result = await self._fetch_paginated_data("aktivitaet", anzahl, **filters)
@@ -358,7 +358,7 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             List[dict]: A list of documents of the specified type.
         """
         try:
-            filters["dokumentart"] = doc_type
+            filters["drucksachetyp"] = doc_type
             result = await self._fetch_paginated_data("drucksache", anzahl, **filters)
             return result or []
         except Exception as e:

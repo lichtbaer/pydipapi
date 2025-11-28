@@ -141,74 +141,105 @@ class AsyncBaseApiClient:
                             attempt += 1
                             continue
 
-                    # Handle other errors
-                    try:
-                        # Convert aiohttp response to requests-like response for error handling
-                        response_text = await response.text()
-                        # We'll handle errors differently for async
-                        if response.status >= 400:
-                            raise aiohttp.ClientResponseError(
-                                request_info=response.request_info,
-                                history=response.history,
-                                status=response.status,
-                                message=f"HTTP {response.status}: {response.reason}",
-                            )
-                    except Exception as e:
-                        logger.error(f"handle_api_error failed: {e}")
-                        logger.error(f"Response status: {response.status}")
-                        response_text = await response.text()
+                    # Read response data while still in context manager
+                    response_text = await response.text()
+                    response_headers = dict(response.headers)
+                    response_status = response.status
+
+                    # Handle errors
+                    if response_status >= 400:
+                        logger.error(f"HTTP error: {response_status}")
                         logger.error(f"Response text: {response_text[:500]}...")
 
                         # Provide specific guidance for common errors
-                        if response.status == 401:
+                        if response_status == 401:
                             logger.error(
                                 "Authentication failed. Please check your API key."
                             )
                             logger.error(
                                 "You can get an API key from: https://dip.bundestag.de/über-dip/hilfe/api"
                             )
-                        elif response.status == 403:
+                        elif response_status == 403:
                             logger.error(
                                 "Access forbidden. Your API key may not have the required permissions."
                             )
-                        elif response.status == 429:
+                        elif response_status == 429:
                             logger.error(
                                 "Rate limit exceeded. Please wait before making more requests."
                             )
 
-                        raise e
+                        raise aiohttp.ClientResponseError(
+                            request_info=response.request_info,
+                            history=response.history,
+                            status=response_status,
+                            message=f"HTTP {response_status}: {response.reason}",
+                        )
 
-                    # Cache successful responses (store JSON to be JSON-serializable)
+                    # Parse JSON while still in context manager
+                    try:
+                        response_json = json.loads(response_text) if response_text else {}
+                    except json.JSONDecodeError:
+                        logger.warning("Failed to parse response as JSON, returning empty dict")
+                        response_json = {}
+
+                    # Cache successful responses
                     if (
                         self.enable_cache
                         and use_cache
                         and self.cache
-                        and response.status == 200
+                        and response_status == 200
                     ):
                         logger.debug("Caching successful response")
                         try:
-                            response_json = await response.json()
                             cache_data = {
                                 "json": response_json,
-                                "headers": dict(response.headers),
+                                "headers": response_headers,
                             }
                             self.cache.set(url, cache_data, params)
                         except Exception:
                             logger.exception("Failed to write response to cache")
 
-                    logger.debug(f"Request successful - status: {response.status}")
-                    return response
+                    # Create a wrapper object that mimics aiohttp.ClientResponse
+                    # but contains the already-read data
+                    class _ResponseWrapper:
+                        def __init__(
+                            self,
+                            data_json: Dict[str, Any],
+                            headers: Dict[str, Any],
+                            status: int,
+                        ):
+                            self._data_json = data_json
+                            self.headers = headers
+                            self.status = status
+                            self.request_info = getattr(response, "request_info", None)
+                            self.history = getattr(response, "history", ())
+
+                        async def json(self) -> Dict[str, Any]:
+                            return self._data_json
+
+                        async def text(self) -> str:
+                            return json.dumps(self._data_json)
+
+                    logger.debug(f"Request successful - status: {response_status}")
+                    return cast(Optional[aiohttp.ClientResponse], _ResponseWrapper(
+                        response_json, response_headers, response_status
+                    ))
 
             except aiohttp.ClientError as e:
                 logger.error(f"ClientError on attempt {attempt + 1}: {e}")
-                if (
-                    attempt < self.max_retries
-                    and response
-                    and should_retry(response, attempt, self.max_retries)
-                ):
-                    logger.info(f"Retrying request (attempt {attempt + 1})")
-                    attempt += 1
-                    continue
+                # Check if we should retry based on the error type
+                if attempt < self.max_retries:
+                    # For ClientResponseError, check status code
+                    if isinstance(e, aiohttp.ClientResponseError):
+                        if should_retry(e, attempt, self.max_retries):
+                            logger.info(f"Retrying request (attempt {attempt + 1})")
+                            attempt += 1
+                            continue
+                    else:
+                        # For other ClientErrors, retry
+                        logger.info(f"Retrying request (attempt {attempt + 1})")
+                        attempt += 1
+                        continue
                 raise e
             except Exception as e:
                 logger.error(f"Unexpected exception on attempt {attempt + 1}: {e}")

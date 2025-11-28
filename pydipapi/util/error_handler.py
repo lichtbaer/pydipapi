@@ -58,7 +58,7 @@ def should_retry(response: Any, attempt: int, max_retries: int) -> bool:
     Determine if a request should be retried.
 
     Args:
-        response: The response object (requests or aiohttp).
+        response: The response object (requests or aiohttp) or exception.
         attempt (int): Current attempt number.
         max_retries (int): Maximum number of retries.
 
@@ -70,6 +70,7 @@ def should_retry(response: Any, attempt: int, max_retries: int) -> bool:
 
     # Retry on server errors (5xx) and rate limiting (429)
     # Prefer requests.Response.status_code; fallback to aiohttp's .status
+    # Also support aiohttp.ClientResponseError which has .status
     code = getattr(response, "status_code", None)
     if code is None:
         code = getattr(response, "status", None)
