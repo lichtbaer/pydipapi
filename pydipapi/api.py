@@ -5,6 +5,7 @@ Main API client for the German Bundestag API.
 import logging
 from typing import Any, Dict, List, Optional
 
+import requests
 from pydantic import parse_obj_as
 
 from .client.base_client import BaseApiClient
@@ -35,6 +36,7 @@ class DipAnfrage(BaseApiClient):
         max_retries: int = 3,
         enable_cache: bool = True,
         cache_ttl: int = 3600,
+        timeout: float = 30.0,
     ):
         """
         Initialize the DIP API client.
@@ -46,9 +48,10 @@ class DipAnfrage(BaseApiClient):
             max_retries (int): Maximum number of retries for failed requests.
             enable_cache (bool): Whether to enable caching.
             cache_ttl (int): Cache time to live in seconds.
+            timeout (float): Request timeout in seconds. Default is 30.0.
         """
         super().__init__(
-            api_key, base_url, rate_limit_delay, max_retries, enable_cache, cache_ttl
+            api_key, base_url, rate_limit_delay, max_retries, enable_cache, cache_ttl, timeout
         )
 
     def _request_json(self, url: str) -> Optional[Dict[str, Any]]:
@@ -147,7 +150,7 @@ class DipAnfrage(BaseApiClient):
             result = self._fetch_paginated_data("person", anzahl, **filters)
             logger.info(f"Retrieved {len(result)} persons")
             return result or []
-        except Exception as e:
+        except (requests.RequestException, ValueError, KeyError) as e:
             logger.error(f"Error fetching persons: {e}")
             return []
 
@@ -397,7 +400,7 @@ class DipAnfrage(BaseApiClient):
         try:
             result = self._fetch_paginated_data("aktivitaet", anzahl, **filters)
             return result or []
-        except Exception:
+        except (requests.RequestException, ValueError, KeyError):
             return []
 
     def get_aktivitaet_typed(self, anzahl: int = 100, **filters) -> List[ActivityModel]:
@@ -425,7 +428,7 @@ class DipAnfrage(BaseApiClient):
             endpoint = "drucksache-text" if text else "drucksache"
             result = self._fetch_paginated_data(endpoint, anzahl, **filters)
             return result or []
-        except Exception:
+        except (requests.RequestException, ValueError, KeyError):
             return []
 
     def get_drucksache_typed(self, anzahl: int = 100, **filters) -> List[DocumentModel]:
@@ -453,7 +456,7 @@ class DipAnfrage(BaseApiClient):
             endpoint = "plenarprotokoll-text" if text else "plenarprotokoll"
             result = self._fetch_paginated_data(endpoint, anzahl, **filters)
             return result or []
-        except Exception:
+        except (requests.RequestException, ValueError, KeyError):
             return []
 
     def get_vorgang(self, anzahl: int = 10, **filters) -> List[dict]:
@@ -470,7 +473,7 @@ class DipAnfrage(BaseApiClient):
         try:
             result = self._fetch_paginated_data("vorgang", anzahl, **filters)
             return result or []
-        except Exception:
+        except (requests.RequestException, ValueError, KeyError):
             return []
 
     def get_vorgangsposition(
@@ -491,7 +494,7 @@ class DipAnfrage(BaseApiClient):
                 "vorgangsposition", anzahl, **filters
             )
             return parse_obj_as(List[Vorgangspositionbezug], documents)
-        except Exception:
+        except (requests.RequestException, ValueError, KeyError, TypeError):
             return []
 
     def _fetch_paginated_data(

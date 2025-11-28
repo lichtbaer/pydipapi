@@ -6,6 +6,7 @@ import asyncio
 import json
 import logging
 from typing import Any, Dict, Optional, cast
+from urllib.parse import urlencode
 
 import aiohttp
 
@@ -28,6 +29,7 @@ class AsyncBaseApiClient:
         max_retries: int = 3,
         enable_cache: bool = True,
         cache_ttl: int = 3600,
+        timeout: float = 30.0,
     ):
         """
         Initialize the async base API client.
@@ -39,6 +41,7 @@ class AsyncBaseApiClient:
             max_retries (int): Maximum number of retries for failed requests.
             enable_cache (bool): Whether to enable caching.
             cache_ttl (int): Cache time to live in seconds.
+            timeout (float): Request timeout in seconds. Default is 30.0.
         """
         self.api_key = api_key
         self.base_url = base_url.rstrip("/")
@@ -46,6 +49,7 @@ class AsyncBaseApiClient:
         self.max_retries = max_retries
         self.enable_cache = enable_cache
         self.cache = SimpleCache(ttl=cache_ttl) if enable_cache else None
+        self.timeout = timeout
         self._session: Optional[aiohttp.ClientSession] = None
 
     async def _get_session(self) -> aiohttp.ClientSession:
@@ -53,7 +57,7 @@ class AsyncBaseApiClient:
         if self._session is None or self._session.closed:
             self._session = aiohttp.ClientSession(
                 headers={"Content-Type": "application/json"},
-                timeout=aiohttp.ClientTimeout(total=30),
+                timeout=aiohttp.ClientTimeout(total=self.timeout),
             )
         return self._session
 
@@ -264,24 +268,26 @@ class AsyncBaseApiClient:
             **kwargs: Query parameters.
 
         Returns:
-            str: The complete URL.
+            str: The complete URL with properly encoded parameters.
         """
         url = f"{self.base_url}/{endpoint}"
 
         if kwargs:
-            # Convert kwargs to query parameters
-            params = []
+            # Convert kwargs to query parameters with proper URL encoding
+            params_dict: Dict[str, Any] = {}
             for key, value in kwargs.items():
                 if value is not None:
                     if isinstance(value, list):
                         # Handle list parameters (e.g., f_id for multiple IDs)
-                        for item in value:
-                            params.append(f"{key}={item}")
+                        # For lists, we need to add multiple entries with the same key
+                        params_dict[key] = value
                     else:
-                        params.append(f"{key}={value}")
+                        params_dict[key] = value
 
-            if params:
-                url += "?" + "&".join(params)
+            if params_dict:
+                # Use urlencode with doseq=True to handle lists properly
+                query_string = urlencode(params_dict, doseq=True)
+                url += "?" + query_string
 
         return url
 

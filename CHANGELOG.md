@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Batch operations and caching functionality
 - Comprehensive documentation and examples
 - Jupyter notebooks for tutorials
-- Support for Python 3.8+
+- Support for Python 3.10+
 
 ### Features
 - **API Client**: Synchronous and asynchronous clients

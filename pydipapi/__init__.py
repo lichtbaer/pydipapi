@@ -34,8 +34,8 @@ from .type import (
 )
 
 __version__ = "0.3.0"
-__author__ = "Your Name"
-__email__ = "your.email@example.com"
+__author__ = "Johannes Gegenheimer"
+__email__ = "jg@politikpraxis.de"
 
 __all__ = [
     "DipAnfrage",

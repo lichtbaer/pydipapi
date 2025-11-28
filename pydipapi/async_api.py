@@ -5,6 +5,7 @@ Async API client for the German Bundestag DIP API.
 import logging
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
+import aiohttp
 from pydantic import parse_obj_as
 
 from .client.async_client import AsyncBaseApiClient
@@ -34,6 +35,7 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
         max_retries: int = 3,
         enable_cache: bool = True,
         cache_ttl: int = 3600,
+        timeout: float = 30.0,
     ):
         """
         Initialize the async DIP API client.
@@ -45,9 +47,10 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             max_retries (int): Maximum number of retries for failed requests.
             enable_cache (bool): Whether to enable caching.
             cache_ttl (int): Cache time to live in seconds.
+            timeout (float): Request timeout in seconds. Default is 30.0.
         """
         super().__init__(
-            api_key, base_url, rate_limit_delay, max_retries, enable_cache, cache_ttl
+            api_key, base_url, rate_limit_delay, max_retries, enable_cache, cache_ttl, timeout
         )
 
     def _build_url(self, endpoint: str, **kwargs) -> str:
@@ -75,7 +78,7 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
                 return None
             data = await response.json()
             return data if isinstance(data, dict) else None
-        except Exception as e:
+        except (aiohttp.ClientError, ValueError, KeyError, json.JSONDecodeError) as e:
             logger.error(f"Error making async request to {url}: {e}")
             return None
 
@@ -117,7 +120,7 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
         try:
             result = await self._fetch_paginated_data("person", anzahl, **filters)
             return result or []
-        except Exception as e:
+        except (aiohttp.ClientError, ValueError, KeyError) as e:
             logger.error(f"Error fetching persons: {e}")
             return []
 
@@ -142,7 +145,7 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
                 docs = data["documents"]
                 return docs if isinstance(docs, list) else []
             return []
-        except Exception as e:
+        except (aiohttp.ClientError, ValueError, KeyError) as e:
             logger.error(f"Error fetching person IDs: {e}")
             return []
 
@@ -413,7 +416,7 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
         try:
             result = await self._fetch_paginated_data("aktivitaet", anzahl, **filters)
             return result or []
-        except Exception as e:
+        except (aiohttp.ClientError, ValueError, KeyError) as e:
             logger.error(f"Error fetching activities: {e}")
             return []
 
@@ -435,7 +438,7 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             endpoint = "drucksache-text" if text else "drucksache"
             result = await self._fetch_paginated_data(endpoint, anzahl, **filters)
             return result or []
-        except Exception as e:
+        except (aiohttp.ClientError, ValueError, KeyError) as e:
             logger.error(f"Error fetching documents: {e}")
             return []
 
@@ -497,7 +500,7 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
                 "vorgangsposition", anzahl, **filters
             )
             return parse_obj_as(List[Vorgangspositionbezug], documents)
-        except Exception as e:
+        except (aiohttp.ClientError, ValueError, KeyError, TypeError) as e:
             logger.error(f"Error fetching proceeding positions: {e}")
             return []
 
