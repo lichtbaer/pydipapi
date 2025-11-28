@@ -3,12 +3,14 @@ from typing import Iterable
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 # Re-export selected error utilities for convenience
-from .error_handler import handle_api_error, is_rate_limited, should_retry  # noqa: F401
-from .error_handling import (  # noqa: F401
+from .error_handler import (  # noqa: F401
     DipApiConnectionError,
     DipApiError,
     DipApiHttpError,
+    handle_api_error,
     handle_api_response,
+    is_rate_limited,
+    should_retry,
     validate_api_key,
 )
 

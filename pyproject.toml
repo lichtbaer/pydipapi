@@ -183,7 +183,10 @@ files = [
 
 [[tool.mypy.overrides]]
 module = ["pydipapi.parsers.*"]
-ignore_errors = true
+# Allow less strict type checking for parsers due to dynamic data structures
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = true
 
 [[tool.mypy.overrides]]
 module = ["pydipapi.api", "pydipapi.async_api"]
