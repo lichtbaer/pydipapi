@@ -36,6 +36,8 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
         enable_cache: bool = True,
         cache_ttl: int = 3600,
         timeout: float = 30.0,
+        connector_limit: int = 100,
+        connector_limit_per_host: int = 30,
     ):
         """
         Initialize the async DIP API client.
@@ -48,9 +50,19 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             enable_cache (bool): Whether to enable caching.
             cache_ttl (int): Cache time to live in seconds.
             timeout (float): Request timeout in seconds. Default is 30.0.
+            connector_limit (int): Maximum number of connections in the pool. Default is 100.
+            connector_limit_per_host (int): Maximum number of connections per host. Default is 30.
         """
         super().__init__(
-            api_key, base_url, rate_limit_delay, max_retries, enable_cache, cache_ttl, timeout
+            api_key,
+            base_url,
+            rate_limit_delay,
+            max_retries,
+            enable_cache,
+            cache_ttl,
+            timeout,
+            connector_limit,
+            connector_limit_per_host,
         )
 
     def _build_url(self, endpoint: str, **kwargs) -> str:
@@ -79,7 +91,7 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
             data = await response.json()
             return data if isinstance(data, dict) else None
         except (aiohttp.ClientError, ValueError, KeyError, json.JSONDecodeError) as e:
-            logger.error(f"Error making async request to {url}: {e}")
+            logger.error(f"Error making async request to {redact_query_params(url)}: {e}")
             return None
 
     async def _fetch_paginated_data(

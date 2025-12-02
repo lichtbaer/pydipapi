@@ -10,7 +10,13 @@ from urllib.parse import urlencode
 import requests
 
 from ..util.cache import SimpleCache
-from ..util.error_handler import handle_api_error, is_rate_limited, should_retry
+from ..util.error_handler import (
+    DipApiHttpError,
+    handle_api_error,
+    is_rate_limited,
+    should_retry,
+)
+from ..util import redact_query_params
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +76,7 @@ class BaseApiClient:
         Raises:
             requests.HTTPError: If the request fails after all retries.
         """
-        logger.debug(f"Making request to URL: {url}")
+        logger.debug(f"Making request to URL: {redact_query_params(url)}")
         logger.debug(f"Parameters: {params}")
         logger.debug(f"Use cache: {use_cache}")
 
@@ -117,8 +123,9 @@ class BaseApiClient:
                 # Handle other errors
                 try:
                     handle_api_error(response)
-                except Exception as e:
-                    logger.error(f"handle_api_error failed: {e}")
+                except DipApiHttpError as e:
+                    # Log error details
+                    logger.error(f"API error: {e}")
                     logger.error(f"Response status: {response.status_code}")
                     logger.error(f"Response text: {response.text[:500]}...")
 
@@ -140,6 +147,9 @@ class BaseApiClient:
                         )
 
                     raise e
+                except Exception as e:
+                    logger.error(f"Unexpected error in handle_api_error: {e}")
+                    raise
 
                 # Cache successful responses
                 if (
@@ -179,7 +189,7 @@ class BaseApiClient:
 
         # If we get here, all retries failed
         logger.error("Request failed after all retries")
-        logger.error(f"URL: {url}")
+        logger.error(f"URL: {redact_query_params(url)}")
         logger.error(f"Params: {params}")
         return None
 

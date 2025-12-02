@@ -7,6 +7,8 @@ from __future__ import annotations
 import logging
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 
+from ..util import redact_query_params
+
 logger = logging.getLogger(__name__)
 
 
@@ -42,7 +44,7 @@ def fetch_paginated_sync(
             params["cursor"] = cursor
 
         url = build_url(endpoint, **params)
-        logger.debug(f"[sync] Making request to URL: {url}")
+        logger.debug(f"[sync] Making request to URL: {redact_query_params(url)}")
 
         data = make_request(url)
         if data is None:
@@ -107,7 +109,7 @@ async def fetch_paginated_async(
             params["cursor"] = cursor
 
         url = build_url(endpoint, **params)
-        logger.debug(f"[async] Making request to URL: {url}")
+        logger.debug(f"[async] Making request to URL: {redact_query_params(url)}")
 
         data = await make_request_async(url)
         if data is None:

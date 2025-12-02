@@ -11,7 +11,13 @@ from urllib.parse import urlencode
 import aiohttp
 
 from ..util.cache import SimpleCache
-from ..util.error_handler import is_rate_limited, should_retry
+from ..util.error_handler import (
+    DipApiHttpError,
+    handle_async_api_error,
+    is_rate_limited,
+    should_retry,
+)
+from ..util import redact_query_params
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +36,8 @@ class AsyncBaseApiClient:
         enable_cache: bool = True,
         cache_ttl: int = 3600,
         timeout: float = 30.0,
+        connector_limit: int = 100,
+        connector_limit_per_host: int = 30,
     ):
         """
         Initialize the async base API client.
@@ -42,6 +50,8 @@ class AsyncBaseApiClient:
             enable_cache (bool): Whether to enable caching.
             cache_ttl (int): Cache time to live in seconds.
             timeout (float): Request timeout in seconds. Default is 30.0.
+            connector_limit (int): Maximum number of connections in the pool. Default is 100.
+            connector_limit_per_host (int): Maximum number of connections per host. Default is 30.
         """
         self.api_key = api_key
         self.base_url = base_url.rstrip("/")
@@ -50,12 +60,24 @@ class AsyncBaseApiClient:
         self.enable_cache = enable_cache
         self.cache = SimpleCache(ttl=cache_ttl) if enable_cache else None
         self.timeout = timeout
+        self.connector_limit = connector_limit
+        self.connector_limit_per_host = connector_limit_per_host
         self._session: Optional[aiohttp.ClientSession] = None
+        self._connector: Optional[aiohttp.TCPConnector] = None
 
     async def _get_session(self) -> aiohttp.ClientSession:
-        """Get or create the aiohttp session."""
+        """Get or create the aiohttp session with connection pooling."""
         if self._session is None or self._session.closed:
+            # Create connector with connection pooling configuration
+            self._connector = aiohttp.TCPConnector(
+                limit=self.connector_limit,
+                limit_per_host=self.connector_limit_per_host,
+                ttl_dns_cache=300,  # DNS cache for 5 minutes
+                force_close=False,  # Reuse connections
+                enable_cleanup_closed=True,  # Clean up closed connections
+            )
             self._session = aiohttp.ClientSession(
+                connector=self._connector,
                 headers={"Content-Type": "application/json"},
                 timeout=aiohttp.ClientTimeout(total=self.timeout),
             )
@@ -78,7 +100,7 @@ class AsyncBaseApiClient:
         Raises:
             aiohttp.ClientError: If the request fails after all retries.
         """
-        logger.debug(f"Making async request to URL: {url}")
+        logger.debug(f"Making async request to URL: {redact_query_params(url)}")
         logger.debug(f"Parameters: {params}")
         logger.debug(f"Use cache: {use_cache}")
 
@@ -150,7 +172,7 @@ class AsyncBaseApiClient:
                     response_headers = dict(response.headers)
                     response_status = response.status
 
-                    # Handle errors
+                    # Handle errors using custom exceptions
                     if response_status >= 400:
                         logger.error(f"HTTP error: {response_status}")
                         logger.error(f"Response text: {response_text[:500]}...")
@@ -172,12 +194,8 @@ class AsyncBaseApiClient:
                                 "Rate limit exceeded. Please wait before making more requests."
                             )
 
-                        raise aiohttp.ClientResponseError(
-                            request_info=response.request_info,
-                            history=response.history,
-                            status=response_status,
-                            message=f"HTTP {response_status}: {response.reason}",
-                        )
+                        # Use custom exception instead of aiohttp.ClientResponseError
+                        handle_async_api_error(response_status, response.reason, response_text)
 
                     # Parse JSON while still in context manager
                     try:
@@ -255,7 +273,7 @@ class AsyncBaseApiClient:
 
         # If we get here, all retries failed
         logger.error("Request failed after all retries")
-        logger.error(f"URL: {url}")
+        logger.error(f"URL: {redact_query_params(url)}")
         logger.error(f"Params: {params}")
         return None
 
@@ -315,9 +333,12 @@ class AsyncBaseApiClient:
         return None
 
     async def close(self) -> None:
-        """Close the aiohttp session."""
+        """Close the aiohttp session and connector."""
         if self._session and not self._session.closed:
             await self._session.close()
+        if self._connector:
+            await self._connector.close()
+            self._connector = None
 
     async def __aenter__(self) -> "AsyncBaseApiClient":
         """Async context manager entry."""
