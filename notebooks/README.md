@@ -51,7 +51,7 @@ Diese Notebooks bieten eine umfassende, interaktive Einführung in PyDipAPI, dem
 
 1. **Python-Umgebung:**
    ```bash
-   cd /home/johannes/PycharmProjects/pydipapi
+   # Im Projektverzeichnis
    pip install -e .
    pip install jupyter jupyterlab matplotlib plotly pandas
    ```
@@ -65,13 +65,13 @@ Diese Notebooks bieten eine umfassende, interaktive Einführung in PyDipAPI, dem
 
 1. **Jupyter Lab starten (empfohlen):**
    ```bash
-   cd /home/johannes/PycharmProjects/pydipapi
+   # Im Projektverzeichnis
    jupyter lab
    ```
 
 2. **Oder klassisches Jupyter Notebook:**
    ```bash
-   cd /home/johannes/PycharmProjects/pydipapi
+   # Im Projektverzeichnis
    jupyter notebook
    ```
 
@@ -106,7 +106,6 @@ Diese Notebooks bieten eine umfassende, interaktive Einführung in PyDipAPI, dem
 **"ModuleNotFoundError: No module named 'pydipapi'"**
 ```bash
 # Im Projektverzeichnis ausführen:
-cd /home/johannes/PycharmProjects/pydipapi
 pip install -e .
 ```
 
