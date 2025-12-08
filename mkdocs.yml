@@ -143,7 +143,6 @@ nav:
     - Entwickler-Guide: developer_guide.md
     - Publishing Workflow: publishing.md
   - Project:
-    - Roadmap & Status: roadmap.md
     - Changelog: changelog.md
 
 extra_css:

@@ -9,14 +9,14 @@ Ein moderner, vollständiger Python-Client für die deutsche Bundestag API (DIP)
 
 ## 🚀 Features
 
-- **Vollständige API-Abdeckung** - Alle Endpunkte der Bundestag API
-- **Batch-Operationen** - Mehrere IDs in einem Aufruf abrufen
-- **Intelligentes Caching** - Automatisches Caching für bessere Performance
-- **Rate Limiting** - Konfigurierbare Verzögerungen zwischen Requests
-- **Retry-Logik** - Automatische Wiederholung bei Fehlern
-- **Flexible Filterung** - Umfassende Such- und Filteroptionen
-- **Convenience-Methoden** - Einfache Abfragen für häufige Anwendungsfälle
-- **Vollständige Dokumentation** - Detaillierte API-Referenz und Beispiele
+- **🔄 Async Support** - Hochperformanter asynchroner API-Client für gleichzeitige Anfragen
+- **📊 Content Parsers** - Strukturierte Datenextraktion aus parlamentarischen Dokumenten
+- **⚡ Intelligentes Caching** - Integriertes Caching mit konfigurierbarer TTL und Größenlimits
+- **🔍 Erweiterte Filterung** - Leistungsstarke Such- und Filterfunktionen
+- **📦 Batch-Operationen** - Effiziente Massendatenabfrage und -verarbeitung
+- **🛡️ Fehlerbehandlung** - Robuste Fehlerbehandlung mit Wiederholungsmechanismen
+- **📚 Typsicherheit** - Vollständige Typannotationen für bessere IDE-Unterstützung
+- **🎯 Einfach zu verwenden** - Einfaches, intuitives API-Design
 
 ## 📦 Installation
 
@@ -30,26 +30,74 @@ pip install pydipapi
 2. Registrieren Sie sich für einen API-Key
 3. Setzen Sie die Umgebungsvariable: `export DIP_API_KEY='ihr_api_key'`
 
-## 🎯 Schnellstart
+## 🏃 Schnellstart
+
+### Grundlegende Verwendung
 
 ```python
 from pydipapi import DipAnfrage
 
 # Client initialisieren
-dip = DipAnfrage(api_key='ihr_api_key')
+api = DipAnfrage(api_key="ihr_api_key_hier")
 
-# Personen abrufen
-persons = dip.get_person(anzahl=10)
+# Abgeordnete abrufen
+members = api.get_person(anzahl=10)
+for member in members:
+    print(f"{member['vorname']} {member['nachname']} ({member.get('fraktion', 'Unbekannt')})")
 
-# Dokumente durchsuchen
-docs = dip.search_documents("Bundeshaushalt", anzahl=5)
+# Aktuelle Dokumente abrufen
+documents = api.get_drucksache(anzahl=5)
+for doc in documents:
+    print(f"Dokument: {doc['titel']}")
+```
 
-# Batch-Operationen
-person_ids = [12345, 67890, 11111]
-persons_batch = dip.get_person_ids(person_ids)
+### Async-Verwendung
 
-# Convenience-Methoden
-recent_activities = dip.get_recent_activities(days=7)
+```python
+import asyncio
+from pydipapi.async_api import AsyncDipAnfrage
+
+async def main():
+    async with AsyncDipAnfrage(api_key="ihr_api_key_hier") as api:
+        # Parallele Anfragen für bessere Performance
+        members, documents, activities = await asyncio.gather(
+            api.get_person(anzahl=10),
+            api.get_drucksache(anzahl=10),
+            api.get_aktivitaet(anzahl=10)
+        )
+        
+        print(f"Abgerufen: {len(members)} Abgeordnete, {len(documents)} Dokumente, {len(activities)} Aktivitäten")
+
+asyncio.run(main())
+```
+
+### Content Parsing
+
+```python
+from pydipapi import DipAnfrage
+from pydipapi.parsers import DocumentParser, PersonParser
+
+api = DipAnfrage(api_key="ihr_api_key_hier")
+
+# Dokumentinhalt parsen
+documents = api.get_drucksache(anzahl=5)
+doc_parser = DocumentParser()
+parsed_docs = doc_parser.parse_batch(documents)
+
+for doc in parsed_docs:
+    print(f"Titel: {doc.get('titel')}")
+    print(f"Typ: {doc.get('dokumenttyp')}")
+    print(f"Autoren: {', '.join(doc.get('autoren', []))}")
+
+# Abgeordneteninformationen parsen
+members = api.get_person(anzahl=10)
+person_parser = PersonParser()
+parsed_members = person_parser.parse_batch(members)
+
+for member in parsed_members:
+    print(f"Name: {member.get('name')}")
+    print(f"Partei: {member.get('partei')}")
+    print(f"Wahlkreis: {member.get('wahlkreis')}")
 ```
 
 ## 📚 Dokumentation
@@ -86,16 +134,15 @@ dip = DipAnfrage(
 )
 ```
 
-## 📊 Verfügbare Endpunkte
+## 🏗️ Verfügbare Endpunkte
 
-| Endpunkt | Beschreibung | Batch-Support |
-|----------|--------------|---------------|
-| `get_person()` | Personen abrufen | ✅ |
-| `get_aktivitaet()` | Aktivitäten abrufen | ✅ |
-| `get_drucksache()` | Dokumente abrufen | ✅ |
-| `get_plenarprotokoll()` | Protokolle abrufen | ✅ |
-| `get_vorgang()` | Vorgänge abrufen | ✅ |
-| `get_vorgangsposition()` | Vorgangspositionen abrufen | ✅ |
+| Endpunkt | Methode | Beschreibung |
+|----------|--------|-------------|
+| **Abgeordnete** | `get_person()` | Abgeordnete abrufen |
+| **Dokumente** | `get_drucksache()` | Parlamentarische Dokumente abrufen |
+| **Protokolle** | `get_plenarprotokoll()` | Plenarsitzungsprotokolle abrufen |
+| **Aktivitäten** | `get_aktivitaet()` | Parlamentarische Aktivitäten abrufen |
+| **Verfahren** | `get_vorgang()` | Gesetzgebungsverfahren abrufen |
 
 ## 🔍 Filter-Optionen
 
@@ -107,45 +154,94 @@ dip = DipAnfrage(
 | `drucksachetyp` | Dokumenttyp | `drucksachetyp="Antrag"` |
 | `vorgangstyp` | Vorgangstyp | `vorgangstyp="Gesetzgebung"` |
 
-## 🚀 Convenience-Methoden
+## 📚 Dokumentation & Beispiele
+
+### Jupyter Notebooks
+Umfassende Tutorials sind im `notebooks/` Verzeichnis verfügbar:
+
+1. **Grundlegende Verwendung** - Erste Schritte mit PyDipAPI
+2. **Filterung & Suche** - Erweiterte Abfragetechniken
+3. **Batch-Operationen** - Effiziente Massendatenverarbeitung
+4. **Content Parsers** - Strukturierte Datenextraktion
+5. **Async API** - Hochperformante Async-Operationen
+6. **Datenvisualisierung** - Erstellen von Diagrammen und Dashboards
+
+### Beispiel-Skripte
+Prüfen Sie das `examples/` Verzeichnis für praktische Anwendungsfälle:
+- Grundlegende API-Verwendung
+- Async-Implementierung
+- Content-Parsing-Beispiele
+- Erweiterte Filterungstechniken
+
+## 📈 Erweiterte Features
+
+### Intelligentes Caching
 
 ```python
-# Suche nach Dokumenten
-docs = dip.search_documents("Klimaschutz", anzahl=10)
+from pydipapi import DipAnfrage
+from pydipapi.util.cache import SimpleCache
 
-# Aktuelle Aktivitäten
-recent = dip.get_recent_activities(days=7)
+# Caching konfigurieren
+cache = SimpleCache(
+    ttl=3600  # Cache TTL: 1 Stunde
+)
 
-# Personen nach Namen suchen
-persons = dip.get_person_by_name("Merkel", anzahl=5)
+api = DipAnfrage(api_key="ihr_api_key_hier", enable_cache=True, cache_ttl=3600)
 
-# Dokumente nach Typ
-anträge = dip.get_documents_by_type("Antrag", anzahl=10)
+# Erster Aufruf greift auf die API zu
+members = api.get_person(anzahl=10)
 
-# Vorgänge nach Typ
-gesetzgebung = dip.get_proceedings_by_type("Gesetzgebung", anzahl=10)
+# Zweiter Aufruf nutzt Cache (viel schneller)
+members_cached = api.get_person(anzahl=10)
+
+# Cache-Statistiken prüfen
+print(f"Cache Treffer: {cache.hits}")
+print(f"Cache Fehlschläge: {cache.misses}")
+print(f"Trefferquote: {cache.hit_rate:.2%}")
 ```
 
-## 📈 Performance-Optimierung
+### Erweiterte Filterung
 
-### Caching
 ```python
-# Cache aktivieren
-dip = DipAnfrage(api_key='key', enable_cache=True, cache_ttl=7200)
+from datetime import datetime, timedelta
 
-# Cache verwalten
-dip.clear_cache()           # Gesamten Cache löschen
-dip.clear_expired_cache()   # Abgelaufene Einträge löschen
+# Nach Datumsbereich filtern
+start_date = datetime.now() - timedelta(days=30)
+end_date = datetime.now()
+
+recent_documents = api.get_drucksache(
+    datum_start=start_date.strftime("%Y-%m-%d"),
+    datum_end=end_date.strftime("%Y-%m-%d"),
+    anzahl=50
+)
+
+# Nach Wahlperiode filtern
+current_period_docs = api.get_drucksache(
+    wahlperiode=20,
+    anzahl=100
+)
+
+# Komplexe Filterung mit mehreren Parametern
+specific_activities = api.get_aktivitaet(
+    wahlperiode=20,
+    datum_start="2023-01-01",
+    anzahl=50
+)
 ```
 
 ### Batch-Operationen
-```python
-# Mehrere IDs auf einmal abrufen
-person_ids = [12345, 67890, 11111]
-persons = dip.get_person_ids(person_ids)
 
-doc_ids = [12345, 67890]
-docs = dip.get_drucksache_ids(doc_ids, text=True)
+```python
+# Effiziente Batch-Verarbeitung
+all_members = []
+batch_size = 100
+
+for offset in range(0, 1000, batch_size):
+    batch = api.get_person(anzahl=batch_size, offset=offset)
+    all_members.extend(batch)
+    print(f"Bisher abgerufen: {len(all_members)} Abgeordnete...")
+
+print(f"Gesamt abgerufene Abgeordnete: {len(all_members)}")
 ```
 
 ## 🛠️ Entwicklung
