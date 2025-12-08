@@ -276,7 +276,7 @@ DOCUMENT_DATA = {
 ACTIVITY_DATA = {
     'id': '11000001',
     'titel': 'Test Activity',
-    'datum': '2024-01-01'
+    'datum': '2025-01-01'
 }
 ```
 

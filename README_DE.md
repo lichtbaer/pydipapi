@@ -149,7 +149,7 @@ dip = DipAnfrage(
 | Parameter | Beschreibung | Beispiel |
 |-----------|--------------|----------|
 | `wahlperiode` | Legislaturperiode | `wahlperiode=20` |
-| `datum_start` / `datum_end` | Datumsbereich | `datum_start="2024-01-01"` |
+| `datum_start` / `datum_end` | Datumsbereich | `datum_start="2025-01-01"` |
 | `titel` | Titel-Suche | `titel="Bundeshaushalt"` |
 | `drucksachetyp` | Dokumenttyp | `drucksachetyp="Antrag"` |
 | `vorgangstyp` | Vorgangstyp | `vorgangstyp="Gesetzgebung"` |

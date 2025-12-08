@@ -166,7 +166,7 @@ def main():
     sample_document = {
         "titel": "Kleine Anfrage der Abgeordneten Dr. Alice Schmidt (CDU/CSU)",
         "text": "Die Bundesregierung wird gebeten, folgende Fragen zu beantworten: 1. Wie viele Windkraftanlagen wurden im Jahr 2023 errichtet? 2. Welche Maßnahmen plant die Regierung zur Förderung erneuerbarer Energien? Kontakt: alice.schmidt@bundestag.de, Tel: +49 30 227-12345",
-        "datum": "2024-01-15",
+        "datum": "2025-01-15",
         "dokumentart": "Kleine Anfrage",
     }
 

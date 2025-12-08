@@ -72,7 +72,7 @@ if protocols:
         'session_info': {
             'session_number': '123',
             'legislative_period': '20',
-            'session_date': datetime(2024, 1, 15),
+            'session_date': datetime(2025, 1, 15),
             'start_time': '09:00',
             'end_time': '18:00',
             'location': 'Berlin',
@@ -149,8 +149,8 @@ if protocols:
             'has_procedural_motions': False
         },
         'dates': {
-            'datum': datetime(2024, 1, 15),
-            'sitzungsdatum': datetime(2024, 1, 15)
+            'datum': datetime(2025, 1, 15),
+            'sitzungsdatum': datetime(2025, 1, 15)
         },
         'references': {
             'links': ['https://bundestag.de'],
@@ -332,7 +332,7 @@ parties = parser.extract_all_text(text, r'\b(CDU|SPD|FDP|Grüne)\b')
 numbers = parser.extract_numbers(text)
 
 # Datum parsen
-date = parser.parse_date("2024-01-15")
+date = parser.parse_date("2025-01-15")
 ```
 
 ## Beispiele

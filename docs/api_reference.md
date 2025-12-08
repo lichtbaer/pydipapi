@@ -52,8 +52,8 @@ persons = dip.get_person(anzahl=50, wahlperiode=20)
 # Personen nach Datum
 persons = dip.get_person(
     anzahl=20,
-    datum_start="2024-01-01",
-    datum_end="2024-12-31"
+    datum_start="2025-01-01",
+    datum_end="2025-12-31"
 )
 ```
 
@@ -226,8 +226,8 @@ activities = dip.get_aktivitaet()
 # Aktivitäten nach Datum
 activities = dip.get_aktivitaet(
     anzahl=50,
-    datum_start="2024-01-01",
-    datum_end="2024-12-31"
+    datum_start="2025-01-01",
+    datum_end="2025-12-31"
 )
 ```
 
@@ -358,8 +358,8 @@ protocols = dip.get_plenarprotokoll(text=False, anzahl=50)
 # Protokolle nach Datum
 protocols = dip.get_plenarprotokoll(
     anzahl=20,
-    datum_start="2024-01-01",
-    datum_end="2024-12-31"
+    datum_start="2025-01-01",
+    datum_end="2025-12-31"
 )
 ```
 
@@ -403,8 +403,8 @@ positions = dip.get_vorgangsposition()
 # Positionen nach Datum
 positions = dip.get_vorgangsposition(
     anzahl=30,
-    datum_start="2024-01-01",
-    datum_end="2024-12-31"
+    datum_start="2025-01-01",
+    datum_end="2025-12-31"
 )
 ```
 
@@ -614,8 +614,8 @@ persons = dip.get_person(wahlperiode=20, anzahl=50)
 
 # Dokumente nach Datum
 docs = dip.get_drucksache(
-    datum_start="2024-01-01",
-    datum_end="2024-12-31",
+    datum_start="2025-01-01",
+    datum_end="2025-12-31",
     anzahl=100
 )
 

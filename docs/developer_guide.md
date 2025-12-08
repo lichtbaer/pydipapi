@@ -170,7 +170,7 @@ budget_docs = dip.search_documents("Bundeshaushalt", anzahl=10)
 recent_climate_docs = dip.search_documents(
     "Klimaschutz", 
     anzahl=10,
-    datum_start="2024-01-01",
+    datum_start="2025-01-01",
     wahlperiode=20
 )
 ```

@@ -50,9 +50,9 @@ class TestBaseParser:
         parser = self.parser
 
         # Test various date formats
-        assert parser.parse_date("2024-01-15") is not None
-        assert parser.parse_date("15.01.2024") is not None
-        assert parser.parse_date("2024-01-15T10:30:00") is not None
+        assert parser.parse_date("2025-01-15") is not None
+        assert parser.parse_date("15.01.2025") is not None
+        assert parser.parse_date("2025-01-15T10:30:00") is not None
         assert parser.parse_date("invalid") is None
 
     def test_clean_text(self):
@@ -140,7 +140,7 @@ class TestDocumentParser:
         doc = {
             "titel": "Kleine Anfrage der Abgeordneten Dr. Alice Schmidt (CDU/CSU)",
             "text": "Contact: alice.schmidt@bundestag.de",
-            "datum": "2024-01-15",
+            "datum": "2025-01-15",
             "dokumentart": "Kleine Anfrage",
         }
 
@@ -278,7 +278,7 @@ class TestActivityParser:
             "titel": "Plenarsitzung 123",
             "sitzungsnummer": "123",
             "wahlperiode": "20",
-            "sitzungsdatum": "2024-01-15",
+            "sitzungsdatum": "2025-01-15",
             "beschreibung": "Debatte über Umweltpolitik mit CDU und SPD",
         }
 
@@ -334,7 +334,7 @@ class TestProtocolParser:
         protocol = {
             "sitzungsnummer": "123",
             "wahlperiode": "20",
-            "sitzungsdatum": "2024-01-15",
+            "sitzungsdatum": "2025-01-15",
             "text": "Herr Dr. Schmidt (CDU/CSU): Guten Tag. Frau Mueller (SPD): Hallo.",
         }
 
