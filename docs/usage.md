@@ -99,8 +99,8 @@ activities = dip.get_aktivitaet(anzahl=20)
 # Aktivitäten aus einem Zeitraum
 activities_filtered = dip.get_aktivitaet(
     anzahl=10,
-    datum_start="2024-01-01",
-    datum_end="2024-12-31"
+    datum_start="2025-01-01",
+    datum_end="2025-12-31"
 )
 
 # Aktuelle Aktivitäten (letzte 7 Tage)
@@ -167,15 +167,15 @@ proceedings_batch = dip.get_vorgang_ids(proceeding_ids)
 # Aktivitäten aus einem Zeitraum
 activities = dip.get_aktivitaet(
     anzahl=20,
-    datum_start="2024-01-01",
-    datum_end="2024-12-31"
+    datum_start="2025-01-01",
+    datum_end="2025-12-31"
 )
 
 # Dokumente aus einem Zeitraum
 docs = dip.get_drucksache(
     anzahl=10,
-    datum_start="2024-01-01",
-    datum_end="2024-06-30",
+    datum_start="2025-01-01",
+    datum_end="2025-06-30",
     text=False
 )
 ```

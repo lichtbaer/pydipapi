@@ -110,12 +110,12 @@ def demo_protocol_parser():
         "titel": "Plenarprotokoll 20/123",
         "sitzungsnummer": "123",
         "wahlperiode": "20",
-        "sitzungsdatum": "2024-01-15",
+        "sitzungsdatum": "2025-01-15",
         "text": """
         Deutscher Bundestag
         20. Wahlperiode
         123. Sitzung
-        Berlin, Montag, den 15. Januar 2024
+        Berlin, Montag, den 15. Januar 2025
 
         Präsident Dr. Wolfgang Schäuble:
         Ich eröffne die 123. Sitzung des Deutschen Bundestages.

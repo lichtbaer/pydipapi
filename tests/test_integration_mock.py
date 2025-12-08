@@ -82,13 +82,13 @@ class TestIntegrationMockSync(unittest.TestCase):
                     "id": "11111",
                     "titel": "Test Document 1",
                     "dokumenttyp": "Antrag",
-                    "datum": "2024-01-15",
+                    "datum": "2025-01-15",
                 },
                 {
                     "id": "22222",
                     "titel": "Test Document 2",
                     "dokumenttyp": "Kleine Anfrage",
-                    "datum": "2024-01-20",
+                    "datum": "2025-01-20",
                 },
             ],
         }
