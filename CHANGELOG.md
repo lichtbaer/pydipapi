@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Version Synchronization** - Fixed version inconsistency between `__init__.py` and `pyproject.toml`
 - **Missing Import** - Added missing `json` import in `async_api.py`
 
-## [0.3.0] - 2024-12-XX
+## [0.3.0] - 2025-12-10
 
 ### Added
 - **Content Parsers** - Complete parser suite for structured data analysis
