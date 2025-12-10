@@ -30,6 +30,9 @@ from .type import (
     Protocol as Protocol,
 )
 from .type import (
+    Vorgang as Vorgang,
+)
+from .type import (
     Vorgangspositionbezug,
 )
 
@@ -51,5 +54,6 @@ __all__ = [
     "Document",
     "Activity",
     "Protocol",
+    "Vorgang",
     "Vorgangspositionbezug",
 ]

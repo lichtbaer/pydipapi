@@ -13,6 +13,8 @@ from .client.pagination import fetch_paginated_sync
 from .type import Activity as ActivityModel
 from .type import Document as DocumentModel
 from .type import Person as PersonModel
+from .type import Protocol as ProtocolModel
+from .type import Vorgang as VorgangModel
 from .type import Vorgangspositionbezug
 from .util import redact_query_params
 
@@ -438,6 +440,23 @@ class DipAnfrage(BaseApiClient):
         raw = self.get_drucksache(anzahl=anzahl, **filters)
         return parse_obj_as(List[DocumentModel], raw)
 
+    def get_plenarprotokoll_typed(
+        self, anzahl: int = 100, text: bool = True, **filters
+    ) -> List[ProtocolModel]:
+        """
+        Retrieve plenary protocols and return typed models.
+
+        Args:
+            anzahl: Number of protocols to retrieve.
+            text: Whether to retrieve text protocols.
+            **filters: Query filters.
+
+        Returns:
+            List of Protocol models.
+        """
+        raw = self.get_plenarprotokoll(anzahl=anzahl, text=text, **filters)
+        return parse_obj_as(List[ProtocolModel], raw)
+
     def get_plenarprotokoll(
         self, anzahl: int = 10, text: bool = True, **filters
     ) -> List[dict]:
@@ -475,6 +494,20 @@ class DipAnfrage(BaseApiClient):
             return result or []
         except (requests.RequestException, ValueError, KeyError):
             return []
+
+    def get_vorgang_typed(self, anzahl: int = 100, **filters) -> List[VorgangModel]:
+        """
+        Retrieve proceedings and return typed models.
+
+        Args:
+            anzahl: Number of proceedings to retrieve.
+            **filters: Query filters.
+
+        Returns:
+            List of Vorgang models.
+        """
+        raw = self.get_vorgang(anzahl=anzahl, **filters)
+        return parse_obj_as(List[VorgangModel], raw)
 
     def get_vorgangsposition(
         self, anzahl: int = 10, **filters

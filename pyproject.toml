@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pydipapi"
-version = "0.1.0"
+version = "0.3.0"
 description = "Modern Python client for the German Bundestag API with batch operations, caching, and performance optimization"
 readme = "README.md"
 license = "MIT"

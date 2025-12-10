@@ -2,6 +2,7 @@
 Async API client for the German Bundestag DIP API.
 """
 
+import json
 import logging
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
@@ -14,7 +15,7 @@ from .type import Vorgangspositionbezug
 from .util import redact_query_params
 
 if TYPE_CHECKING:  # for forward-ref type hints only
-    from .type import Activity, Document, Person
+    from .type import Activity, Document, Person, Protocol, Vorgang
 
 logger = logging.getLogger(__name__)
 
@@ -580,3 +581,36 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
         """
         raw = await self.get_aktivitaet(anzahl=anzahl, **filters)
         return parse_obj_as(List[Activity], raw)
+
+    async def get_plenarprotokoll_typed(
+        self, anzahl: int = 100, text: bool = True, **filters
+    ) -> List["Protocol"]:
+        """
+        Retrieve plenary protocols and return typed models (async).
+
+        Args:
+            anzahl: Number of protocols to retrieve.
+            text: Whether to retrieve text protocols.
+            **filters: Query filters.
+
+        Returns:
+            List of Protocol models.
+        """
+        raw = await self.get_plenarprotokoll(anzahl=anzahl, text=text, **filters)
+        return parse_obj_as(List[Protocol], raw)
+
+    async def get_vorgang_typed(
+        self, anzahl: int = 100, **filters
+    ) -> List["Vorgang"]:
+        """
+        Retrieve proceedings and return typed models (async).
+
+        Args:
+            anzahl: Number of proceedings to retrieve.
+            **filters: Query filters.
+
+        Returns:
+            List of Vorgang models.
+        """
+        raw = await self.get_vorgang(anzahl=anzahl, **filters)
+        return parse_obj_as(List[Vorgang], raw)
