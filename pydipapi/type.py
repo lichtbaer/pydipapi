@@ -184,3 +184,16 @@ class Protocol(BaseModel):
     wahlperiode: Optional[int] = Field(None, description="Legislative period")
     sitzungsdatum: Optional[date] = Field(None, description="Session date")
     text: Optional[str] = Field(None, description="Protocol text")
+
+
+class Vorgang(BaseModel):
+    """
+    Typed representation of a legislative process (Vorgang).
+    """
+
+    id: Optional[str] = Field(None, description="DIP process ID")
+    titel: Optional[str] = Field(None, description="Process title")
+    vorgangstyp: Optional[str] = Field(None, description="Process type")
+    wahlperiode: Optional[int] = Field(None, description="Legislative period")
+    gesta: Optional[str] = Field(None, description="GESTA code if available")
+    datum: Optional[date] = Field(None, description="Process date")

@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Typed Methods for Protocols and Proceedings** - `get_plenarprotokoll_typed()` and `get_vorgang_typed()` methods added to both sync and async APIs
+- **Vorgang Model** - New typed model for legislative processes
+
+### Fixed
+- **Version Synchronization** - Fixed version inconsistency between `__init__.py` and `pyproject.toml`
+- **Missing Import** - Added missing `json` import in `async_api.py`
+
+## [0.3.0] - 2024-12-XX
+
+### Added
 - **Content Parsers** - Complete parser suite for structured data analysis
   - **ProtocolParser** - Extracts information from full-text plenary protocols
   - **DocumentParser** - Analyzes documents and other materials
