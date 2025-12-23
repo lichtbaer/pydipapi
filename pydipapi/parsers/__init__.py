@@ -9,6 +9,7 @@ from .base_parser import BaseParser
 from .document_parser import DocumentParser
 from .person_parser import PersonParser
 from .protocol_parser import ProtocolParser
+from .protocol_xml_parser import ProtocolXmlParser
 
 __all__ = [
     "BaseParser",
@@ -16,4 +17,5 @@ __all__ = [
     "PersonParser",
     "ActivityParser",
     "ProtocolParser",
+    "ProtocolXmlParser",
 ]

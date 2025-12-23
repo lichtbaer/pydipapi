@@ -170,7 +170,7 @@ class SimpleCache:
             try:
                 cache_file.unlink()
                 cleared_count += 1
-            except (OSError, PermissionError) as e:
+            except Exception as e:
                 logger.warning(f"Failed to delete cache file {cache_file}: {e}")
         logger.debug(f"Cleared {cleared_count} cache files")
 
@@ -199,7 +199,7 @@ class SimpleCache:
                     cleared_count += 1
                 except OSError:
                     pass
-            except (OSError, PermissionError) as e:
+            except Exception as e:
                 logger.warning(f"Failed to process cache file {cache_file}: {e}")
 
         logger.debug(f"Cleared {cleared_count} expired cache files")

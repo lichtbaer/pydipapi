@@ -16,6 +16,7 @@ from .type import Person as PersonModel
 from .type import Protocol as ProtocolModel
 from .type import Vorgang as VorgangModel
 from .type import Vorgangspositionbezug
+from .util.error_handler import DipApiHttpError
 from .util import redact_query_params
 
 logger = logging.getLogger(__name__)
@@ -136,7 +137,13 @@ class DipAnfrage(BaseApiClient):
         kwargs["apikey"] = self.api_key
         return super()._build_url(endpoint, **kwargs)
 
-    def get_person(self, anzahl: int = 100, **filters) -> List[dict]:
+    def get_person(
+        self,
+        anzahl: int = 100,
+        max_retries: Optional[int] = None,
+        raise_on_error: Optional[bool] = None,
+        **filters,
+    ) -> List[dict]:
         """
         Retrieve a list of persons from the API.
 
@@ -147,14 +154,26 @@ class DipAnfrage(BaseApiClient):
         Returns:
             List[dict]: A list of person dictionaries.
         """
+        if raise_on_error is None:
+            # Keep convenience behavior by default; allow strict mode for debugging/mocks.
+            raise_on_error = not self.enable_cache
+
+        original_retries = self.max_retries
+        if max_retries is not None:
+            self.max_retries = max_retries
+
         try:
             logger.info(f"Fetching {anzahl} persons with filters: {filters}")
             result = self._fetch_paginated_data("person", anzahl, **filters)
             logger.info(f"Retrieved {len(result)} persons")
             return result or []
-        except (requests.RequestException, ValueError, KeyError) as e:
+        except Exception as e:
             logger.error(f"Error fetching persons: {e}")
+            if raise_on_error and isinstance(e, DipApiHttpError):
+                raise
             return []
+        finally:
+            self.max_retries = original_retries
 
     def get_person_typed(self, anzahl: int = 100, **filters) -> List[PersonModel]:
         """
@@ -402,7 +421,7 @@ class DipAnfrage(BaseApiClient):
         try:
             result = self._fetch_paginated_data("aktivitaet", anzahl, **filters)
             return result or []
-        except (requests.RequestException, ValueError, KeyError):
+        except Exception:
             return []
 
     def get_aktivitaet_typed(self, anzahl: int = 100, **filters) -> List[ActivityModel]:
@@ -430,7 +449,7 @@ class DipAnfrage(BaseApiClient):
             endpoint = "drucksache-text" if text else "drucksache"
             result = self._fetch_paginated_data(endpoint, anzahl, **filters)
             return result or []
-        except (requests.RequestException, ValueError, KeyError):
+        except Exception:
             return []
 
     def get_drucksache_typed(self, anzahl: int = 100, **filters) -> List[DocumentModel]:
@@ -475,7 +494,7 @@ class DipAnfrage(BaseApiClient):
             endpoint = "plenarprotokoll-text" if text else "plenarprotokoll"
             result = self._fetch_paginated_data(endpoint, anzahl, **filters)
             return result or []
-        except (requests.RequestException, ValueError, KeyError):
+        except Exception:
             return []
 
     def get_vorgang(self, anzahl: int = 10, **filters) -> List[dict]:
@@ -492,7 +511,7 @@ class DipAnfrage(BaseApiClient):
         try:
             result = self._fetch_paginated_data("vorgang", anzahl, **filters)
             return result or []
-        except (requests.RequestException, ValueError, KeyError):
+        except Exception:
             return []
 
     def get_vorgang_typed(self, anzahl: int = 100, **filters) -> List[VorgangModel]:
@@ -527,7 +546,7 @@ class DipAnfrage(BaseApiClient):
                 "vorgangsposition", anzahl, **filters
             )
             return parse_obj_as(List[Vorgangspositionbezug], documents)
-        except (requests.RequestException, ValueError, KeyError, TypeError):
+        except Exception:
             return []
 
     def _fetch_paginated_data(
@@ -607,6 +626,40 @@ class DipAnfrage(BaseApiClient):
             Optional[dict]: The protocol dictionary or None if not found.
         """
         return self._fetch_single_item("plenarprotokoll-text", id)
+
+    def get_plenarprotokoll_xml(self, protocol: Dict[str, Any]) -> Optional[str]:
+        """
+        Download the structured XML for a protocol, if available.
+
+        The DIP JSON objects may include `fundstelle.xml_url` for BT plenary
+        protocols (typically WP >= 18). This method follows that link and
+        returns the XML as text.
+        """
+        try:
+            xml_url = (protocol.get("fundstelle") or {}).get("xml_url")
+            if not xml_url:
+                return None
+            response = self._make_request(xml_url, use_cache=True)
+            if response is None or isinstance(response, dict):
+                return None
+            return response.text
+        except Exception as e:
+            logger.error(f"Error fetching protocol XML: {e}")
+            return None
+
+    def get_plenarprotokoll_xml_by_id(self, id: int, text: bool = True) -> Optional[str]:
+        """
+        Convenience method: fetch a protocol by ID and download its XML, if any.
+
+        Args:
+            id: DIP protocol ID.
+            text: If True, first fetch via `plenarprotokoll-text/{id}` (includes
+                the plaintext). If False, fetch via `plenarprotokoll/{id}`.
+        """
+        protocol = self.get_plenarprotokoll_text_by_id(id) if text else self.get_plenarprotokoll_by_id(id)
+        if not protocol:
+            return None
+        return self.get_plenarprotokoll_xml(protocol)
 
     def get_vorgang_by_id(self, id: int) -> Optional[dict]:
         """

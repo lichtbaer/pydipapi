@@ -3,6 +3,7 @@ Tests for content parsers.
 """
 
 import pytest
+from pathlib import Path
 
 from pydipapi.parsers import (
     ActivityParser,
@@ -10,6 +11,7 @@ from pydipapi.parsers import (
     DocumentParser,
     PersonParser,
     ProtocolParser,
+    ProtocolXmlParser,
 )
 
 
@@ -382,6 +384,48 @@ class TestProtocolParser:
         assert len(topics["main_topics"]) >= 2
         assert "Umweltpolitik" in topics["main_topics"][0]
         assert "Bildungspolitik" in topics["main_topics"][1]
+
+
+class TestProtocolXmlParser:
+    """Test the XML protocol parser on a minimal fixture."""
+
+    def test_parse_min_xml(self):
+        parser = ProtocolXmlParser()
+
+        fixture_path = Path(__file__).parent / "fixtures" / "plenarprotokoll_min.xml"
+        xml = fixture_path.read_text(encoding="utf-8")
+
+        result = parser.parse(xml)
+        assert "parsed" in result
+        parsed = result["parsed"]
+
+        session = parsed["session_info"]
+        assert session["wahlperiode"] == "20"
+        assert session["sitzungsnummer"] == "177"
+        assert session["sitzungsdatum"] == "26.06.2024"
+        assert session["ort"] == "Berlin"
+
+        agenda = parsed["agenda"]
+        assert len(agenda) == 2
+        assert agenda[0]["type"] == "sitzungsbeginn"
+        assert "Bärbel Bas" in (agenda[0]["chair"] or "")
+        assert agenda[1]["type"] == "tagesordnungspunkt"
+        assert agenda[1]["top_id"] == "Tagesordnungspunkt 1"
+        assert "Europäischen Rat" in (agenda[1]["title"] or "")
+        assert agenda[1]["speech_ids"] == ["ID2017700100"]
+
+        speeches = parsed["speeches"]
+        assert len(speeches) == 1
+        speech = speeches[0]
+        assert speech["id"] == "ID2017700100"
+        assert speech["speaker"]["nachname"] == "Scholz"
+        assert speech["speaker"]["rolle_lang"] == "Bundeskanzler"
+        assert any(
+            p["text"].startswith("Frau Präsidentin!")
+            for p in speech["paragraphs"]
+            if isinstance(p.get("text"), str)
+        )
+        assert any(c["text"] == "(Zuruf)" for c in speech["comments"])
 
 
 if __name__ == "__main__":
