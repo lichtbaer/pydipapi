@@ -13,7 +13,9 @@ This parser consumes that XML and extracts a first, stable structure:
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Union
+from io import BytesIO
+import re
+from typing import Any, Dict, List, Optional, Tuple, Union
 import xml.etree.ElementTree as ET
 
 from .base_parser import BaseParser
@@ -25,6 +27,26 @@ def _norm(text: str) -> str:
 
 def _all_text(el: ET.Element) -> str:
     return _norm("".join(el.itertext()))
+
+
+def _extract_int(text: Optional[str]) -> Optional[int]:
+    if not text:
+        return None
+    m = re.search(r"(\d+)", text)
+    return int(m.group(1)) if m else None
+
+
+def _classify_stage_direction(text: str) -> str:
+    t = text.lower()
+    if "beifall" in t:
+        return "applause"
+    if "zwischenruf" in t or "zuruf" in t:
+        return "heckle"
+    if "lachen" in t:
+        return "laughter"
+    if "unruhe" in t or "ruhe" in t or "ordnung" in t:
+        return "procedural"
+    return "other"
 
 
 class ProtocolXmlParser(BaseParser):
@@ -42,35 +64,82 @@ class ProtocolXmlParser(BaseParser):
             return {}
 
         xml_bytes = data.encode("utf-8") if isinstance(data, str) else data
-        root = ET.fromstring(xml_bytes)
 
-        session_info = {
-            "wahlperiode": root.attrib.get("wahlperiode"),
-            "sitzungsnummer": root.attrib.get("sitzung-nr"),
-            "sitzungsdatum": root.attrib.get("sitzung-datum"),
-            "startzeit": root.attrib.get("sitzung-start-uhrzeit"),
-            "endzeit": root.attrib.get("sitzung-ende-uhrzeit"),
-            "ort": root.attrib.get("sitzung-ort"),
-            "herausgeber": root.attrib.get("herausgeber"),
-        }
-
+        # Streaming parse for large protocols; clear processed subtrees.
+        session_info: Dict[str, Any] = {}
         agenda: List[Dict[str, Any]] = []
         speeches: List[Dict[str, Any]] = []
+        xref_by_rid: Dict[str, Dict[str, Any]] = {}
 
-        sitzungsverlauf = root.find("sitzungsverlauf")
-        if sitzungsverlauf is not None:
-            for child in list(sitzungsverlauf):
-                if child.tag == "sitzungsbeginn":
-                    agenda.append(self._parse_sitzungsbeginn(child))
-                elif child.tag == "tagesordnungspunkt":
-                    agenda.append(self._parse_tagesordnungspunkt(child, speeches))
+        in_sitzungsverlauf = False
+        for event, elem in ET.iterparse(
+            BytesIO(xml_bytes), events=("start", "end")
+        ):
+            if event == "start" and elem.tag == "dbtplenarprotokoll" and not session_info:
+                session_info = {
+                    "wahlperiode": elem.attrib.get("wahlperiode"),
+                    "sitzungsnummer": elem.attrib.get("sitzung-nr"),
+                    "sitzungsdatum": elem.attrib.get("sitzung-datum"),
+                    "startzeit": elem.attrib.get("sitzung-start-uhrzeit"),
+                    "endzeit": elem.attrib.get("sitzung-ende-uhrzeit"),
+                    "ort": elem.attrib.get("sitzung-ort"),
+                    "herausgeber": elem.attrib.get("herausgeber"),
+                }
+            elif event == "start" and elem.tag == "sitzungsverlauf":
+                in_sitzungsverlauf = True
+
+            if event != "end":
+                continue
+
+            if elem.tag == "xref":
+                rid = elem.attrib.get("rid")
+                if rid and elem.attrib.get("ref-type") == "rede":
+                    xref_by_rid[rid] = self._parse_xref(elem)
+                elem.clear()
+                continue
+
+            if not in_sitzungsverlauf:
+                continue
+
+            if elem.tag == "sitzungsbeginn":
+                agenda.append(self._parse_sitzungsbeginn(elem))
+                elem.clear()
+            elif elem.tag == "tagesordnungspunkt":
+                item, item_speeches = self._parse_tagesordnungspunkt(elem, xref_by_rid)
+                agenda.append(item)
+                speeches.extend(item_speeches)
+                elem.clear()
+            elif elem.tag == "sitzungsverlauf":
+                in_sitzungsverlauf = False
+                elem.clear()
 
         return {
             "parsed": {
                 "session_info": session_info,
                 "agenda": agenda,
                 "speeches": speeches,
+                "references": {"xref_by_rid": xref_by_rid},
             }
+        }
+
+    def _parse_xref(self, el: ET.Element) -> Dict[str, Any]:
+        # <xref div="C" pnr="22848" ref-type="rede" rid="ID..."><a href="S22848"...>...</a></xref>
+        a = el.find("a")
+        seite = None
+        seitenbereich = None
+        if a is not None:
+            seite_el = a.find("seite")
+            sb_el = a.find("seitenbereich")
+            seite = _all_text(seite_el) if seite_el is not None else None
+            seitenbereich = _all_text(sb_el) if sb_el is not None else None
+
+        return {
+            "rid": el.attrib.get("rid"),
+            "pnr": el.attrib.get("pnr"),
+            "div": el.attrib.get("div"),
+            "href": a.attrib.get("href") if a is not None else None,
+            "seite": seite,
+            "seitenbereich": seitenbereich,
         }
 
     def _parse_sitzungsbeginn(self, el: ET.Element) -> Dict[str, Any]:
@@ -78,56 +147,80 @@ class ProtocolXmlParser(BaseParser):
         chair = _all_text(name_el) if name_el is not None else None
 
         paragraphs = []
-        comments = []
+        stage_directions = []
         for node in list(el):
             if node.tag == "p":
                 paragraphs.append(
                     {"klasse": node.attrib.get("klasse"), "text": _all_text(node)}
                 )
             elif node.tag == "kommentar":
-                comments.append({"text": _all_text(node)})
+                txt = _all_text(node)
+                stage_directions.append({"type": _classify_stage_direction(txt), "text": txt})
 
         return {
             "type": "sitzungsbeginn",
             "chair": chair,
             "startzeit": el.attrib.get("sitzung-start-uhrzeit"),
             "paragraphs": paragraphs,
-            "comments": comments,
+            "stage_directions": stage_directions,
         }
 
     def _parse_tagesordnungspunkt(
-        self, el: ET.Element, speeches_out: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+        self, el: ET.Element, xref_by_rid: Dict[str, Dict[str, Any]]
+    ) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
         top_id = el.attrib.get("top-id")
+        top_number = _extract_int(top_id)
 
-        # Titles are usually in <p klasse="T_fett"> (may occur multiple times)
+        # Titles are usually in direct-child <p klasse="T_fett"> (may occur multiple times)
         titles = [
             _all_text(p)
-            for p in el.findall("p")
+            for p in list(el)
             if p.attrib.get("klasse") in {"T_fett", "T_NaS"}
         ]
         title = " / ".join([t for t in titles if t]) if titles else None
 
+        intro_paragraphs = []
+        for node in list(el):
+            if node.tag != "p":
+                continue
+            if node.attrib.get("klasse") in {"J", "J_1"}:
+                intro_paragraphs.append({"klasse": node.attrib.get("klasse"), "text": _all_text(node)})
+
         speech_ids: List[str] = []
-        for rede in el.findall("rede"):
-            speech = self._parse_rede(rede)
-            speeches_out.append(speech)
+        speeches: List[Dict[str, Any]] = []
+        for node in list(el):
+            if node.tag != "rede":
+                continue
+            speech = self._parse_rede(node, top_id=top_id, top_title=title, xref_by_rid=xref_by_rid)
+            speeches.append(speech)
             if speech.get("id"):
                 speech_ids.append(speech["id"])
 
-        return {
-            "type": "tagesordnungspunkt",
-            "top_id": top_id,
-            "title": title,
-            "speech_ids": speech_ids,
-        }
+        return (
+            {
+                "type": "tagesordnungspunkt",
+                "top_id": top_id,
+                "top_number": top_number,
+                "title": title,
+                "intro_paragraphs": intro_paragraphs,
+                "speech_ids": speech_ids,
+            },
+            speeches,
+        )
 
-    def _parse_rede(self, el: ET.Element) -> Dict[str, Any]:
+    def _parse_rede(
+        self,
+        el: ET.Element,
+        *,
+        top_id: Optional[str],
+        top_title: Optional[str],
+        xref_by_rid: Dict[str, Dict[str, Any]],
+    ) -> Dict[str, Any]:
         rede_id = el.attrib.get("id")
 
         speaker = self._extract_speaker(el)
         paragraphs: List[Dict[str, Any]] = []
-        comments: List[Dict[str, Any]] = []
+        stage_directions: List[Dict[str, Any]] = []
 
         for node in list(el):
             if node.tag == "p":
@@ -138,13 +231,20 @@ class ProtocolXmlParser(BaseParser):
                     {"klasse": node.attrib.get("klasse"), "text": _all_text(node)}
                 )
             elif node.tag == "kommentar":
-                comments.append({"text": _all_text(node)})
+                txt = _all_text(node)
+                stage_directions.append({"type": _classify_stage_direction(txt), "text": txt})
+
+        full_text = "\n\n".join([p["text"] for p in paragraphs if p.get("text")])
 
         return {
             "id": rede_id,
+            "top_id": top_id,
+            "top_title": top_title,
+            "reference": xref_by_rid.get(rede_id) if rede_id else None,
             "speaker": speaker,
             "paragraphs": paragraphs,
-            "comments": comments,
+            "stage_directions": stage_directions,
+            "text": full_text,
         }
 
     def _extract_speaker(self, rede_el: ET.Element) -> Optional[Dict[str, Any]]:

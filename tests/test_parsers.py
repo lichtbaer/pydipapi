@@ -395,7 +395,7 @@ class TestProtocolXmlParser:
         fixture_path = Path(__file__).parent / "fixtures" / "plenarprotokoll_min.xml"
         xml = fixture_path.read_text(encoding="utf-8")
 
-        result = parser.parse(xml)
+        result = parser.parse(xml.encode("utf-8"))
         assert "parsed" in result
         parsed = result["parsed"]
 
@@ -411,6 +411,7 @@ class TestProtocolXmlParser:
         assert "Bärbel Bas" in (agenda[0]["chair"] or "")
         assert agenda[1]["type"] == "tagesordnungspunkt"
         assert agenda[1]["top_id"] == "Tagesordnungspunkt 1"
+        assert agenda[1]["top_number"] == 1
         assert "Europäischen Rat" in (agenda[1]["title"] or "")
         assert agenda[1]["speech_ids"] == ["ID2017700100"]
 
@@ -418,6 +419,9 @@ class TestProtocolXmlParser:
         assert len(speeches) == 1
         speech = speeches[0]
         assert speech["id"] == "ID2017700100"
+        assert speech["reference"]["pnr"] == "22848"
+        assert speech["reference"]["div"] == "C"
+        assert speech["reference"]["href"] == "S22848"
         assert speech["speaker"]["nachname"] == "Scholz"
         assert speech["speaker"]["rolle_lang"] == "Bundeskanzler"
         assert any(
@@ -425,7 +429,9 @@ class TestProtocolXmlParser:
             for p in speech["paragraphs"]
             if isinstance(p.get("text"), str)
         )
-        assert any(c["text"] == "(Zuruf)" for c in speech["comments"])
+        assert any(sd["type"] == "heckle" for sd in speech["stage_directions"])
+        assert any(sd["text"] == "(Zuruf)" for sd in speech["stage_directions"])
+        assert speech["text"].startswith("Frau Präsidentin!")
 
 
 if __name__ == "__main__":

@@ -639,10 +639,26 @@ class DipAnfrage(BaseApiClient):
             xml_url = (protocol.get("fundstelle") or {}).get("xml_url")
             if not xml_url:
                 return None
-            response = self._make_request(xml_url, use_cache=True)
+            # Cache XML as text (SimpleCache is JSON-based)
+            if self.enable_cache and self.cache:
+                cached = self.cache.get(xml_url, None)
+                if cached and isinstance(cached.get("text"), str):
+                    return cached["text"]
+
+            response = self._make_request(xml_url, use_cache=False)
             if response is None or isinstance(response, dict):
                 return None
-            return response.text
+            xml_text = response.text
+
+            if self.enable_cache and self.cache:
+                try:
+                    self.cache.set(
+                        xml_url, {"text": xml_text, "headers": dict(response.headers)}, None
+                    )
+                except Exception:
+                    logger.exception("Failed to write XML response to cache")
+
+            return xml_text
         except Exception as e:
             logger.error(f"Error fetching protocol XML: {e}")
             return None
