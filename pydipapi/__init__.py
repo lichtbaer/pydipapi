@@ -16,6 +16,7 @@ from .parsers import (
     DocumentParser,
     PersonParser,
     ProtocolParser,
+    ProtocolXmlParser,
 )
 from .type import (
     Activity as Activity,
@@ -50,6 +51,7 @@ __all__ = [
     "PersonParser",
     "ActivityParser",
     "ProtocolParser",
+    "ProtocolXmlParser",
     "Person",
     "Document",
     "Activity",

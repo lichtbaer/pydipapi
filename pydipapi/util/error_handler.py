@@ -1,5 +1,10 @@
 """
 Error handling utilities for the DIP API client.
+
+Note:
+This project historically used `requests` exceptions directly in some places.
+The public clients (`DipAnfrage` / `AsyncDipAnfrage`) are expected to swallow
+transport/HTTP failures and return empty results for convenience methods.
 """
 
 import logging
@@ -18,8 +23,7 @@ def handle_api_error(response: requests.Response) -> None:
         response (requests.Response): The response object.
 
     Raises:
-        DipApiHttpError: If the response indicates an HTTP error.
-        DipApiConnectionError: If there's a connection error.
+        requests.exceptions.HTTPError: If the response indicates an HTTP error.
     """
     if response.status_code >= 400:
         try:
@@ -28,8 +32,8 @@ def handle_api_error(response: requests.Response) -> None:
         except ValueError:
             error_message = f"HTTP {response.status_code}: {response.reason}"
 
-        # Use custom exception instead of requests.HTTPError
-        raise DipApiHttpError(response.status_code, error_message)
+        # Raise a requests-style HTTPError (tests rely on this)
+        raise requests.exceptions.HTTPError(error_message, response=response)
 
 
 def is_rate_limited(response: Any) -> bool:

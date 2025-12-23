@@ -120,36 +120,8 @@ class BaseApiClient:
                         attempt += 1
                         continue
 
-                # Handle other errors
-                try:
-                    handle_api_error(response)
-                except DipApiHttpError as e:
-                    # Log error details
-                    logger.error(f"API error: {e}")
-                    logger.error(f"Response status: {response.status_code}")
-                    logger.error(f"Response text: {response.text[:500]}...")
-
-                    # Provide specific guidance for common errors
-                    if response.status_code == 401:
-                        logger.error(
-                            "Authentication failed. Please check your API key."
-                        )
-                        logger.error(
-                            "You can get an API key from: https://dip.bundestag.de/über-dip/hilfe/api"
-                        )
-                    elif response.status_code == 403:
-                        logger.error(
-                            "Access forbidden. Your API key may not have the required permissions."
-                        )
-                    elif response.status_code == 429:
-                        logger.error(
-                            "Rate limit exceeded. Please wait before making more requests."
-                        )
-
-                    raise e
-                except Exception as e:
-                    logger.error(f"Unexpected error in handle_api_error: {e}")
-                    raise
+                # Handle HTTP error status codes (raises requests.HTTPError)
+                handle_api_error(response)
 
                 # Cache successful responses
                 if (
@@ -168,6 +140,19 @@ class BaseApiClient:
                 logger.debug(f"Request successful - status: {response.status_code}")
                 return response
 
+            except requests.exceptions.HTTPError as e:
+                # Retry on retryable HTTP status codes (e.g., 5xx)
+                if (
+                    attempt < self.max_retries
+                    and response
+                    and should_retry(response, attempt, self.max_retries)
+                ):
+                    logger.info(f"Retrying request (attempt {attempt + 1})")
+                    attempt += 1
+                    continue
+
+                status_code = int(getattr(response, "status_code", 0) or 0)
+                raise DipApiHttpError(status_code, str(e))
             except requests.RequestException as e:
                 logger.error(f"RequestException on attempt {attempt + 1}: {e}")
                 if (

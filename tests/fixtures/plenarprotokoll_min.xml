@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE dbtplenarprotokoll SYSTEM "dbtplenarprotokoll.dtd">
+<dbtplenarprotokoll
+    herausgeber="Deutscher Bundestag"
+    sitzung-datum="26.06.2024"
+    sitzung-ende-uhrzeit="21:23"
+    sitzung-nr="177"
+    sitzung-ort="Berlin"
+    sitzung-start-uhrzeit="13:00"
+    wahlperiode="20"
+>
+    <vorspann>
+        <inhaltsverzeichnis>
+            <ivz-block>
+                <ivz-block-titel>Tagesordnungspunkt 1:</ivz-block-titel>
+                <ivz-eintrag>
+                    <ivz-eintrag-inhalt>Zum Europäischen Rat am 27. und 28. Juni 2024</ivz-eintrag-inhalt>
+                </ivz-eintrag>
+                <ivz-eintrag>
+                    <ivz-eintrag-inhalt>Olaf Scholz, Bundeskanzler</ivz-eintrag-inhalt>
+                    <xref div="C" pnr="22848" ref-type="rede" rid="ID2017700100">
+                        <a href="S22848" typ="druckseitennummer"><seite>22848</seite> <seitenbereich>C</seitenbereich></a>
+                    </xref>
+                </ivz-eintrag>
+            </ivz-block>
+        </inhaltsverzeichnis>
+    </vorspann>
+    <sitzungsverlauf>
+        <sitzungsbeginn sitzung-start-uhrzeit="13:00">
+            <name>Präsidentin Bärbel Bas:</name>
+            <p klasse="J_1">Die Sitzung ist eröffnet.</p>
+            <kommentar>(Beifall)</kommentar>
+        </sitzungsbeginn>
+        <tagesordnungspunkt top-id="Tagesordnungspunkt 1">
+            <p klasse="J">Ich rufe auf den Tagesordnungspunkt 1:</p>
+            <p klasse="T_fett">Zum Europäischen Rat am 27. und 28. Juni 2024</p>
+            <rede id="ID2017700100">
+                <p klasse="redner">
+                    <redner id="11003231">
+                        <name>
+                            <vorname>Olaf</vorname>
+                            <nachname>Scholz</nachname>
+                            <rolle>
+                                <rolle_lang>Bundeskanzler</rolle_lang>
+                                <rolle_kurz>Bundeskanzler</rolle_kurz>
+                            </rolle>
+                        </name>
+                    </redner>
+                    Olaf Scholz, Bundeskanzler:
+                </p>
+                <p klasse="J_1">Frau Präsidentin! Meine Damen und Herren!</p>
+                <kommentar>(Zuruf von der AfD: Genau!)</kommentar>
+                <kommentar>(Stephan Brandner [AfD]: Die Bürger haben Sie infrage gestellt!)</kommentar>
+                <p klasse="O">Europa ist wichtig.</p>
+            </rede>
+        </tagesordnungspunkt>
+    </sitzungsverlauf>
+</dbtplenarprotokoll>

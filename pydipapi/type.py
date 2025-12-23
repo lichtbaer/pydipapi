@@ -1,6 +1,6 @@
 from datetime import date
 from enum import Enum
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -184,6 +184,103 @@ class Protocol(BaseModel):
     wahlperiode: Optional[int] = Field(None, description="Legislative period")
     sitzungsdatum: Optional[date] = Field(None, description="Session date")
     text: Optional[str] = Field(None, description="Protocol text")
+
+
+class StageDirectionType(str, Enum):
+    """
+    High-level classification for non-spoken protocol annotations.
+    """
+
+    APPLAUSE = "applause"
+    HECKLE = "heckle"
+    LAUGHTER = "laughter"
+    PROCEDURAL = "procedural"
+    OTHER = "other"
+
+
+class ProtocolXmlReference(BaseModel):
+    """
+    Reference from an IVZ `xref` to a speech (`rid`).
+    """
+
+    rid: str = Field(..., description="Speech ID referenced by xref (rid)")
+    pnr: Optional[str] = Field(None, description="Printed page number (pnr)")
+    div: Optional[str] = Field(None, description="Page quadrant/division (div)")
+    href: Optional[str] = Field(None, description="Anchor reference like S22848")
+    seite: Optional[str] = Field(None, description="Printed page (seite)")
+    seitenbereich: Optional[str] = Field(None, description="Quadrant as text (seitenbereich)")
+
+
+class ProtocolXmlSpeaker(BaseModel):
+    """
+    Speaker metadata in BT protocol XML.
+    """
+
+    id: Optional[str] = Field(None, description="Speaker ID from <redner id=...>")
+    titel: Optional[str] = Field(None, description="Academic title, e.g. Dr.")
+    vorname: Optional[str] = Field(None, description="First name")
+    nachname: Optional[str] = Field(None, description="Last name")
+    fraktion: Optional[str] = Field(None, description="Faction")
+    ortszusatz: Optional[str] = Field(None, description="Constituency add-on")
+    rolle_lang: Optional[str] = Field(None, description="Long role label")
+    rolle_kurz: Optional[str] = Field(None, description="Short role label")
+
+
+class ProtocolXmlParagraph(BaseModel):
+    """
+    A paragraph in a speech or agenda section.
+    """
+
+    klasse: Optional[str] = Field(None, description="BT XML 'klasse' attribute")
+    text: str = Field(..., description="Normalized paragraph text")
+
+
+class ProtocolXmlStageDirection(BaseModel):
+    """
+    A non-spoken annotation like applause, heckles, etc.
+    """
+
+    type: StageDirectionType = Field(..., description="Classification")
+    text: str = Field(..., description="Raw text (normalized)")
+
+
+class ProtocolXmlSpeech(BaseModel):
+    """
+    A single speech (<rede>) with speaker and content.
+    """
+
+    id: Optional[str] = Field(None, description="Speech ID from <rede id=...>")
+    top_id: Optional[str] = Field(None, description="Agenda item id (top-id)")
+    top_title: Optional[str] = Field(None, description="Agenda title")
+    reference: Optional[ProtocolXmlReference] = Field(None, description="IVZ reference")
+    speaker: Optional[ProtocolXmlSpeaker] = Field(None, description="Speaker metadata")
+    paragraphs: List[ProtocolXmlParagraph] = Field(default_factory=list)
+    stage_directions: List[ProtocolXmlStageDirection] = Field(default_factory=list)
+    text: str = Field("", description="Full speech text (joined paragraphs)")
+
+
+class ProtocolXmlAgendaItem(BaseModel):
+    """
+    High-level agenda item extracted from <sitzungsverlauf>.
+    """
+
+    type: str = Field(..., description="sitzungsbeginn|tagesordnungspunkt|...")
+    top_id: Optional[str] = Field(None, description="Agenda identifier (top-id)")
+    top_number: Optional[int] = Field(None, description="Agenda item number if parseable")
+    title: Optional[str] = Field(None, description="Agenda title if available")
+    speech_ids: List[str] = Field(default_factory=list, description="Speech IDs under this item")
+
+
+class ProtocolXmlEvent(BaseModel):
+    """
+    A chronological event extracted from the protocol XML.
+
+    This intentionally keeps a flexible `data` shape so downstream users can
+    filter by `type` and then interpret `data` accordingly.
+    """
+
+    type: str = Field(..., description="Event type (speech_start, paragraph, stage_direction, ...)")
+    data: dict = Field(default_factory=dict, description="Event payload")
 
 
 class Vorgang(BaseModel):

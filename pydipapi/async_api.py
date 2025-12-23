@@ -538,6 +538,68 @@ class AsyncDipAnfrage(AsyncBaseApiClient):
         """Retrieve a single plenary protocol (with text) by its ID asynchronously."""
         return await self._fetch_single_item("plenarprotokoll-text", id)
 
+    async def _request_text_url(self, url: str, use_cache: bool = True) -> Optional[str]:
+        """
+        Fetch a URL and return the response body as text.
+
+        This is used for `fundstelle.xml_url` downloads (hosted on dserver),
+        which are not JSON and therefore must not go through `_request_json()`.
+        """
+        try:
+            if self.enable_cache and use_cache and self.cache:
+                cached = self.cache.get(url, None)
+                if cached and isinstance(cached.get("text"), str):
+                    return cached["text"]
+
+            session = await self._get_session()
+            async with session.get(url) as resp:
+                body = await resp.text()
+                if resp.status >= 400:
+                    logger.error(f"Error fetching text URL {redact_query_params(url)}: {resp.status}")
+                    return None
+
+                if self.enable_cache and use_cache and self.cache:
+                    try:
+                        self.cache.set(url, {"text": body, "headers": dict(resp.headers)}, None)
+                    except Exception:
+                        logger.exception("Failed to write text response to cache")
+
+                return body
+        except Exception as e:
+            logger.error(f"Error fetching text URL {redact_query_params(url)}: {e}")
+            return None
+
+    async def get_plenarprotokoll_xml(self, protocol: Dict[str, Any]) -> Optional[str]:
+        """
+        Download the structured XML for a protocol, if available.
+
+        The DIP JSON objects may include `fundstelle.xml_url` for BT plenary
+        protocols (typically WP >= 18). This method follows that link and
+        returns the XML as text.
+        """
+        xml_url = (protocol.get("fundstelle") or {}).get("xml_url")
+        if not xml_url:
+            return None
+        return await self._request_text_url(xml_url, use_cache=True)
+
+    async def get_plenarprotokoll_xml_by_id(self, id: int, text: bool = True) -> Optional[str]:
+        """
+        Convenience method: fetch a protocol by ID and download its XML, if any.
+
+        Args:
+            id: DIP protocol ID.
+            text: If True, first fetch via `plenarprotokoll-text/{id}`. If False,
+                fetch via `plenarprotokoll/{id}`.
+        """
+        protocol = (
+            await self.get_plenarprotokoll_text_by_id(id)
+            if text
+            else await self.get_plenarprotokoll_by_id(id)
+        )
+        if not protocol:
+            return None
+        return await self.get_plenarprotokoll_xml(protocol)
+
     async def get_vorgang_by_id(self, id: int) -> Optional[dict]:
         """Retrieve a single proceeding (Vorgang) by its ID asynchronously."""
         return await self._fetch_single_item("vorgang", id)
