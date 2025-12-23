@@ -271,6 +271,18 @@ class ProtocolXmlAgendaItem(BaseModel):
     speech_ids: List[str] = Field(default_factory=list, description="Speech IDs under this item")
 
 
+class ProtocolXmlEvent(BaseModel):
+    """
+    A chronological event extracted from the protocol XML.
+
+    This intentionally keeps a flexible `data` shape so downstream users can
+    filter by `type` and then interpret `data` accordingly.
+    """
+
+    type: str = Field(..., description="Event type (speech_start, paragraph, stage_direction, ...)")
+    data: dict = Field(default_factory=dict, description="Event payload")
+
+
 class Vorgang(BaseModel):
     """
     Typed representation of a legislative process (Vorgang).

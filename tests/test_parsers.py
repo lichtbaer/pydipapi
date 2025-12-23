@@ -430,8 +430,25 @@ class TestProtocolXmlParser:
             if isinstance(p.get("text"), str)
         )
         assert any(sd["type"] == "heckle" for sd in speech["stage_directions"])
-        assert any(sd["text"] == "(Zuruf)" for sd in speech["stage_directions"])
+        assert any(
+            sd["text"].startswith("(Zuruf von der AfD:")
+            and sd.get("speaker_faction") == "der AfD"
+            and sd.get("content") == "Genau!"
+            for sd in speech["stage_directions"]
+        )
+        assert any(
+            sd["text"].startswith("(Stephan Brandner [AfD]:")
+            and sd.get("speaker_name") == "Stephan Brandner"
+            and sd.get("speaker_faction") == "AfD"
+            for sd in speech["stage_directions"]
+        )
         assert speech["text"].startswith("Frau Präsidentin!")
+
+        events = parsed["events"]
+        assert events[0]["type"] == "session_open"
+        assert any(e["type"] == "agenda_item_start" for e in events)
+        assert any(e["type"] == "speech_start" and e.get("id") == "ID2017700100" for e in events)
+        assert any(e["type"] == "speech_end" and e.get("id") == "ID2017700100" for e in events)
 
 
 if __name__ == "__main__":

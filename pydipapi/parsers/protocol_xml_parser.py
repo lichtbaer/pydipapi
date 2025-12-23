@@ -36,6 +36,16 @@ def _extract_int(text: Optional[str]) -> Optional[int]:
     return int(m.group(1)) if m else None
 
 
+_NAME_FRAC_RE = re.compile(
+    r"^\((?P<name>[^(\[\]:]+?)\s*\[(?P<faction>[^\]]+)\]:\s*(?P<content>.*)\)$"
+)
+_NAME_ONLY_RE = re.compile(r"^\((?P<name>[^:]+?):\s*(?P<content>.*)\)$")
+_ZURUF_VON_RE = re.compile(
+    r"^\(\s*(?P<kind>zuruf|zwischenruf)\s+von\s+(?P<who>.+?)\s*:\s*(?P<content>.*)\)$",
+    re.IGNORECASE,
+)
+
+
 def _classify_stage_direction(text: str) -> str:
     t = text.lower()
     if "beifall" in t:
@@ -47,6 +57,44 @@ def _classify_stage_direction(text: str) -> str:
     if "unruhe" in t or "ruhe" in t or "ordnung" in t:
         return "procedural"
     return "other"
+
+
+def _parse_stage_direction_details(text: str) -> Dict[str, Any]:
+    """
+    Attempt to extract speaker / faction / content from a BT stage direction.
+
+    Examples:
+    - "(Stephan Brandner [AfD]: ...)"
+    - "(Zuruf von der AfD: ...)"
+    - "(Stephan Brandner: ...)"  (fallback)
+    """
+    raw = _norm(text)
+
+    m = _NAME_FRAC_RE.match(raw)
+    if m:
+        return {
+            "speaker_name": _norm(m.group("name")),
+            "speaker_faction": _norm(m.group("faction")),
+            "content": _norm(m.group("content")),
+        }
+
+    m = _ZURUF_VON_RE.match(raw)
+    if m:
+        return {
+            "speaker_name": None,
+            "speaker_faction": _norm(m.group("who")),
+            "content": _norm(m.group("content")),
+        }
+
+    m = _NAME_ONLY_RE.match(raw)
+    if m:
+        return {
+            "speaker_name": _norm(m.group("name")),
+            "speaker_faction": None,
+            "content": _norm(m.group("content")),
+        }
+
+    return {"speaker_name": None, "speaker_faction": None, "content": None}
 
 
 class ProtocolXmlParser(BaseParser):
@@ -69,7 +117,8 @@ class ProtocolXmlParser(BaseParser):
         session_info: Dict[str, Any] = {}
         agenda: List[Dict[str, Any]] = []
         speeches: List[Dict[str, Any]] = []
-        xref_by_rid: Dict[str, Dict[str, Any]] = {}
+        xref_by_key: Dict[str, Dict[str, Any]] = {}
+        events: List[Dict[str, Any]] = []
 
         in_sitzungsverlauf = False
         for event, elem in ET.iterparse(
@@ -93,8 +142,10 @@ class ProtocolXmlParser(BaseParser):
 
             if elem.tag == "xref":
                 rid = elem.attrib.get("rid")
-                if rid and elem.attrib.get("ref-type") == "rede":
-                    xref_by_rid[rid] = self._parse_xref(elem)
+                ref_type = elem.attrib.get("ref-type")
+                if rid and ref_type:
+                    key = f"{ref_type}:{rid}"
+                    xref_by_key[key] = self._parse_xref(elem)
                 elem.clear()
                 continue
 
@@ -102,12 +153,17 @@ class ProtocolXmlParser(BaseParser):
                 continue
 
             if elem.tag == "sitzungsbeginn":
-                agenda.append(self._parse_sitzungsbeginn(elem))
+                item, item_events = self._parse_sitzungsbeginn(elem)
+                agenda.append(item)
+                events.extend(item_events)
                 elem.clear()
             elif elem.tag == "tagesordnungspunkt":
-                item, item_speeches = self._parse_tagesordnungspunkt(elem, xref_by_rid)
+                item, item_speeches, item_events = self._parse_tagesordnungspunkt(
+                    elem, xref_by_key
+                )
                 agenda.append(item)
                 speeches.extend(item_speeches)
+                events.extend(item_events)
                 elem.clear()
             elif elem.tag == "sitzungsverlauf":
                 in_sitzungsverlauf = False
@@ -118,7 +174,8 @@ class ProtocolXmlParser(BaseParser):
                 "session_info": session_info,
                 "agenda": agenda,
                 "speeches": speeches,
-                "references": {"xref_by_rid": xref_by_rid},
+                "events": events,
+                "references": {"xref_by_key": xref_by_key},
             }
         }
 
@@ -137,37 +194,54 @@ class ProtocolXmlParser(BaseParser):
             "rid": el.attrib.get("rid"),
             "pnr": el.attrib.get("pnr"),
             "div": el.attrib.get("div"),
+            "ref_type": el.attrib.get("ref-type"),
             "href": a.attrib.get("href") if a is not None else None,
             "seite": seite,
             "seitenbereich": seitenbereich,
         }
 
-    def _parse_sitzungsbeginn(self, el: ET.Element) -> Dict[str, Any]:
+    def _parse_sitzungsbeginn(self, el: ET.Element) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
         name_el = el.find("name")
         chair = _all_text(name_el) if name_el is not None else None
 
         paragraphs = []
         stage_directions = []
+        events: List[Dict[str, Any]] = []
+
+        events.append(
+            {
+                "type": "session_open",
+                "chair": chair,
+                "startzeit": el.attrib.get("sitzung-start-uhrzeit"),
+            }
+        )
         for node in list(el):
             if node.tag == "p":
-                paragraphs.append(
-                    {"klasse": node.attrib.get("klasse"), "text": _all_text(node)}
-                )
+                para = {"klasse": node.attrib.get("klasse"), "text": _all_text(node)}
+                paragraphs.append(para)
+                events.append({"type": "paragraph", "scope": "sitzungsbeginn", **para})
             elif node.tag == "kommentar":
                 txt = _all_text(node)
-                stage_directions.append({"type": _classify_stage_direction(txt), "text": txt})
+                sd_type = _classify_stage_direction(txt)
+                details = _parse_stage_direction_details(txt)
+                sd = {"type": sd_type, "text": txt, **details}
+                stage_directions.append(sd)
+                events.append({"type": "stage_direction", "scope": "sitzungsbeginn", **sd})
 
-        return {
+        return (
+            {
             "type": "sitzungsbeginn",
             "chair": chair,
             "startzeit": el.attrib.get("sitzung-start-uhrzeit"),
             "paragraphs": paragraphs,
             "stage_directions": stage_directions,
-        }
+            },
+            events,
+        )
 
     def _parse_tagesordnungspunkt(
-        self, el: ET.Element, xref_by_rid: Dict[str, Dict[str, Any]]
-    ) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
+        self, el: ET.Element, xref_by_key: Dict[str, Dict[str, Any]]
+    ) -> Tuple[Dict[str, Any], List[Dict[str, Any]], List[Dict[str, Any]]]:
         top_id = el.attrib.get("top-id")
         top_number = _extract_int(top_id)
 
@@ -180,21 +254,37 @@ class ProtocolXmlParser(BaseParser):
         title = " / ".join([t for t in titles if t]) if titles else None
 
         intro_paragraphs = []
+        events: List[Dict[str, Any]] = []
+        events.append(
+            {
+                "type": "agenda_item_start",
+                "top_id": top_id,
+                "top_number": top_number,
+                "title": title,
+            }
+        )
         for node in list(el):
             if node.tag != "p":
                 continue
             if node.attrib.get("klasse") in {"J", "J_1"}:
-                intro_paragraphs.append({"klasse": node.attrib.get("klasse"), "text": _all_text(node)})
+                para = {"klasse": node.attrib.get("klasse"), "text": _all_text(node)}
+                intro_paragraphs.append(para)
+                events.append({"type": "paragraph", "scope": "tagesordnungspunkt", **para})
 
         speech_ids: List[str] = []
         speeches: List[Dict[str, Any]] = []
         for node in list(el):
             if node.tag != "rede":
                 continue
-            speech = self._parse_rede(node, top_id=top_id, top_title=title, xref_by_rid=xref_by_rid)
+            speech, speech_events = self._parse_rede(
+                node, top_id=top_id, top_title=title, xref_by_key=xref_by_key
+            )
             speeches.append(speech)
+            events.extend(speech_events)
             if speech.get("id"):
                 speech_ids.append(speech["id"])
+
+        events.append({"type": "agenda_item_end", "top_id": top_id})
 
         return (
             {
@@ -206,6 +296,7 @@ class ProtocolXmlParser(BaseParser):
                 "speech_ids": speech_ids,
             },
             speeches,
+            events,
         )
 
     def _parse_rede(
@@ -214,38 +305,68 @@ class ProtocolXmlParser(BaseParser):
         *,
         top_id: Optional[str],
         top_title: Optional[str],
-        xref_by_rid: Dict[str, Dict[str, Any]],
-    ) -> Dict[str, Any]:
+        xref_by_key: Dict[str, Dict[str, Any]],
+    ) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
         rede_id = el.attrib.get("id")
 
         speaker = self._extract_speaker(el)
         paragraphs: List[Dict[str, Any]] = []
         stage_directions: List[Dict[str, Any]] = []
+        events: List[Dict[str, Any]] = []
 
+        reference = None
+        if rede_id:
+            reference = xref_by_key.get(f"rede:{rede_id}")
+
+        events.append(
+            {
+                "type": "speech_start",
+                "id": rede_id,
+                "top_id": top_id,
+                "top_title": top_title,
+                "speaker": speaker,
+                "reference": reference,
+            }
+        )
         for node in list(el):
             if node.tag == "p":
                 # Skip the redner line; we already parse it as speaker meta
                 if node.attrib.get("klasse") == "redner":
                     continue
-                paragraphs.append(
-                    {"klasse": node.attrib.get("klasse"), "text": _all_text(node)}
-                )
+                para = {"klasse": node.attrib.get("klasse"), "text": _all_text(node)}
+                paragraphs.append(para)
+                events.append({"type": "paragraph", "scope": "rede", "rede_id": rede_id, **para})
             elif node.tag == "kommentar":
                 txt = _all_text(node)
-                stage_directions.append({"type": _classify_stage_direction(txt), "text": txt})
+                sd_type = _classify_stage_direction(txt)
+                details = _parse_stage_direction_details(txt)
+                sd = {"type": sd_type, "text": txt, **details}
+                stage_directions.append(sd)
+                events.append(
+                    {
+                        "type": "stage_direction",
+                        "scope": "rede",
+                        "rede_id": rede_id,
+                        **sd,
+                    }
+                )
 
         full_text = "\n\n".join([p["text"] for p in paragraphs if p.get("text")])
 
-        return {
+        speech = {
             "id": rede_id,
             "top_id": top_id,
             "top_title": top_title,
-            "reference": xref_by_rid.get(rede_id) if rede_id else None,
+            "reference": reference,
             "speaker": speaker,
             "paragraphs": paragraphs,
             "stage_directions": stage_directions,
             "text": full_text,
         }
+
+        events.append({"type": "speech_end", "id": rede_id})
+
+        return speech, events
 
     def _extract_speaker(self, rede_el: ET.Element) -> Optional[Dict[str, Any]]:
         """
