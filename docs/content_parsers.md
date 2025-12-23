@@ -4,9 +4,10 @@ Die Content-Parser von pydipapi extrahieren strukturierte Informationen aus den 
 
 ## Übersicht
 
-pydipapi bietet vier spezialisierte Parser:
+pydipapi bietet fünf spezialisierte Parser:
 
 - **ProtocolParser** - Extrahiert Informationen aus Plenarprotokollen
+- **ProtocolXmlParser** - Parst strukturierte XML-Plenarprotokolle (Agenda/Reden/Ereignisse)
 - **DocumentParser** - Analysiert Drucksachen und andere Dokumente
 - **PersonParser** - Verarbeitet Personen-Daten von Abgeordneten
 - **ActivityParser** - Extrahiert Informationen aus Aktivitäten
@@ -162,6 +163,56 @@ if protocols:
 }
 ```
 
+## ProtocolXmlParser (strukturierte XML-Plenarprotokolle)
+
+Der `ProtocolParser` arbeitet auf dem **Volltext** aus `plenarprotokoll-text`.
+Für viele Bundestag-Plenarprotokolle (typischerweise **Wahlperiode ≥ 18**) liefert die DIP-API zusätzlich einen Link auf die **strukturierte XML-Version** in `fundstelle.xml_url`.
+
+Der `ProtocolXmlParser` lädt/parst diese XML und liefert eine stabile, JSON-serialisierbare Struktur mit:
+
+- **Session-Metadaten** (`session_info`): Wahlperiode, Sitzungsnummer, Datum, Zeiten, Ort, Herausgeber
+- **Agenda** (`agenda`): `sitzungsbeginn` + `tagesordnungspunkt` inkl. Titel, TOP-Nummer, Speech-IDs
+- **Reden** (`speeches`): Sprecher-Metadaten, Absätze, Zwischenrufe/Beifall (als `stage_directions`), zusammengeführter Redetext
+- **Ereignis-Stream** (`events`): fortlaufende Events wie `session_open`, `agenda_item_start`, `speech_start`, `paragraph`, `stage_direction`, `speech_end` …
+- **Referenzen** (`references.xref_by_key`): z. B. Seiten-/Href-Bezüge aus `xref`
+
+### Verwendung (XML laden + parsen)
+
+```python
+from pydipapi import DipAnfrage, ProtocolXmlParser
+
+dip = DipAnfrage(api_key="ihr_api_key")
+
+# Beispiel: XML für ein Protokoll anhand der DIP-ID laden (falls verfügbar)
+xml_text = dip.get_plenarprotokoll_xml_by_id(id=123456)  # -> Optional[str]
+
+if xml_text:
+    parser = ProtocolXmlParser()
+    parsed = parser.parse(xml_text)
+
+    session = parsed["parsed"]["session_info"]
+    print(session["wahlperiode"], session["sitzungsnummer"], session["sitzungsdatum"])
+
+    first_agenda = parsed["parsed"]["agenda"][0]
+    print(first_agenda["type"])
+```
+
+### Offline-Beispiel (ohne API-Key)
+
+Wenn Sie nur das Parsing ausprobieren möchten, können Sie auch eine lokale XML-Datei parsen:
+
+```python
+from pathlib import Path
+from pydipapi import ProtocolXmlParser
+
+xml = Path("tests/fixtures/plenarprotokoll_min.xml").read_text(encoding="utf-8")
+parser = ProtocolXmlParser()
+parsed = parser.parse(xml)
+
+print(parsed["parsed"]["agenda"][1]["title"])
+print(parsed["parsed"]["speeches"][0]["speaker"]["nachname"])
+```
+
 ## DocumentParser
 
 Der DocumentParser analysiert Drucksachen und andere Dokumente:
@@ -290,7 +341,7 @@ if activities:
 
 ### Batch-Parsing
 
-Alle Parser unterstützen das Parsen mehrerer Objekte:
+Alle Parser unterstützen das Parsen mehrerer Objekte, indem Sie `parse()` direkt mit einer Liste aufrufen:
 
 ```python
 # Mehrere Protokolle parsen

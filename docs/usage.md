@@ -145,6 +145,26 @@ protocol_ids = [12345, 67890]
 protocols_batch = dip.get_plenarprotokoll_ids(protocol_ids, text=False)
 ```
 
+### Strukturierte XML-Plenarprotokolle (falls verfügbar)
+
+Für viele Bundestag-Plenarprotokolle (typischerweise Wahlperiode ≥ 18) enthält das DIP-Objekt in `fundstelle.xml_url` einen Link auf die strukturierte XML-Version (gehostet auf dserver).
+
+```python
+from pydipapi import ProtocolXmlParser
+
+# XML für ein einzelnes Protokoll-Objekt laden (falls verfügbar)
+protocols = dip.get_plenarprotokoll(anzahl=1, text=True)
+if protocols:
+    xml_text = dip.get_plenarprotokoll_xml(protocols[0])
+    if xml_text:
+        parser = ProtocolXmlParser()
+        parsed = parser.parse(xml_text)
+        print(parsed["parsed"]["session_info"])
+
+# Oder direkt per DIP-ID (Convenience)
+xml_text = dip.get_plenarprotokoll_xml_by_id(id=123456, text=True)
+```
+
 ### Vorgänge abrufen
 
 ```python

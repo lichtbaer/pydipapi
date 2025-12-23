@@ -12,6 +12,7 @@ Ein moderner, vollständiger Python-Client für die deutsche Bundestag API (DIP)
 - **Flexible Filterung** - Umfassende Such- und Filteroptionen
 - **Convenience-Methoden** - Einfache Abfragen für häufige Anwendungsfälle
 - **Content-Parser** - Strukturierte Extraktion von Protokollen, Dokumenten und Personen
+- **XML-Plenarprotokolle** - Strukturierte Agenda/Reden/Ereignisse via `ProtocolXmlParser` (falls `fundstelle.xml_url` vorhanden)
 - **Async-Support** - Asynchrone API-Aufrufe für bessere Performance
 - **Vollständige Dokumentation** - Detaillierte API-Referenz und Beispiele
 
