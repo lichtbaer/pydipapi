@@ -32,6 +32,29 @@ Performance-Optimierung und fortgeschrittene Funktionen:
 - Performance-Optimierung und Timing-Vergleiche
 - Best Practices für große Datenmengen
 
+### 4. Content Parser (inkl. XML-Plenarprotokolle)
+**Datei:** `notebooks/04_content_parsers.ipynb`
+
+In diesem Notebook lernen Sie:
+- Content-Parser (`DocumentParser`, `PersonParser`, `ActivityParser`, `ProtocolParser`)
+- Unterschied zwischen Volltext-Protokollen und strukturierter XML
+- **`ProtocolXmlParser`**: Agenda/Reden/Ereignisse aus `fundstelle.xml_url` parsen
+
+### 5. Async API Tutorial
+**Datei:** `notebooks/05_async_api_tutorial.ipynb`
+
+In diesem Notebook lernen Sie:
+- `AsyncDipAnfrage` im Context Manager
+- parallele Requests mit `asyncio.gather`
+- Error-Handling-Patterns im Async-Kontext
+
+### 6. Datenvisualisierung
+**Datei:** `notebooks/06_data_visualization.ipynb`
+
+In diesem Notebook lernen Sie:
+- Aus API-Daten einfache Auswertungen erstellen
+- Visualisierungen (je nach Setup) ausgeben
+
 ## 🚀 Erste Schritte
 
 ### Voraussetzungen
@@ -92,6 +115,9 @@ Arbeiten Sie die Notebooks in der angegebenen Reihenfolge durch:
 1. `01_basic_usage.ipynb` - Grundlagen verstehen
 2. `02_filtering_and_search.ipynb` - Erweiterte Funktionen
 3. `03_batch_operations_and_caching.ipynb` - Performance-Optimierung
+4. `04_content_parsers.ipynb` - Strukturierte Datenextraktion (inkl. XML)
+5. `05_async_api_tutorial.ipynb` - Async für maximale Performance
+6. `06_data_visualization.ipynb` - Daten visualisieren
 
 ### Systemanforderungen
 - **Internet-Verbindung:** Für API-Aufrufe erforderlich

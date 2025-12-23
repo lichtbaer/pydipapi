@@ -11,6 +11,7 @@
 
 - **🔄 Async Support**: High-performance asynchronous API client for concurrent requests
 - **📊 Content Parsers**: Extract structured data from parliamentary documents
+- **🧩 Protocol XML Parsing**: Parse structured plenary protocol XML (agenda/speeches/events) when available
 - **⚡ Intelligent Caching**: Built-in caching with configurable TTL and size limits
 - **🔍 Advanced Filtering**: Powerful search and filtering capabilities
 - **📦 Batch Operations**: Efficient bulk data retrieval and processing
@@ -69,29 +70,43 @@ asyncio.run(main())
 
 ```python
 from pydipapi import DipAnfrage
-from pydipapi.parsers import DocumentParser, PersonParser
+from pydipapi.parsers import DocumentParser, PersonParser, ProtocolXmlParser
 
 api = DipAnfrage(api_key="your_api_key_here")
 
 # Parse document content
 documents = api.get_drucksache(anzahl=5)
 doc_parser = DocumentParser()
-parsed_docs = doc_parser.parse_batch(documents)
+parsed_docs = doc_parser.parse(documents)  # `parse()` accepts lists
 
 for doc in parsed_docs:
+    parsed = doc.get("parsed", {})
     print(f"Title: {doc.get('titel')}")
-    print(f"Type: {doc.get('dokumenttyp')}")
-    print(f"Authors: {', '.join(doc.get('autoren', []))}")
+    print(f"Type: {parsed.get('document_type')}")
+    author_names = [a.get("name") for a in parsed.get("authors", []) if isinstance(a, dict) and a.get("name")]
+    print(f"Authors: {', '.join(author_names)}")
 
 # Parse member information
 members = api.get_person(anzahl=10)
 person_parser = PersonParser()
-parsed_members = person_parser.parse_batch(members)
+parsed_members = person_parser.parse(members)
 
 for member in parsed_members:
-    print(f"Name: {member.get('name')}")
-    print(f"Party: {member.get('partei')}")
-    print(f"Constituency: {member.get('wahlkreis')}")
+    parsed = member.get("parsed", {})
+    basic = parsed.get("basic_info", {})
+    constituency = parsed.get("constituency_info", {})
+    party = parsed.get("party_info", {})
+    print(f"Name: {basic.get('name')}")
+    print(f"Party/Faction: {party.get('current_party')}")
+    print(f"Constituency: {constituency.get('constituency')}")
+
+# (Optional) Parse structured protocol XML when `fundstelle.xml_url` is present
+protocols = api.get_plenarprotokoll(anzahl=1, text=True)
+if protocols:
+    xml_text = api.get_plenarprotokoll_xml(protocols[0])
+    if xml_text:
+        xml_parsed = ProtocolXmlParser().parse(xml_text)
+        print(xml_parsed["parsed"]["session_info"])
 ```
 
 ## 📊 Advanced Features
@@ -180,6 +195,7 @@ print(f"Total members retrieved: {len(all_members)}")
 PyDipAPI includes specialized parsers for extracting structured data:
 
 - **`ProtocolParser`**: Extract speakers, topics, and interventions from plenary protocols
+- **`ProtocolXmlParser`**: Parse structured BT plenary protocol XML into agenda/speeches/events (when available)
 - **`DocumentParser`**: Parse document metadata, authors, and content summaries
 - **`PersonParser`**: Extract member information, parties, and constituencies
 - **`ActivityParser`**: Parse voting results, participants, and related documents

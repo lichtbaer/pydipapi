@@ -11,6 +11,7 @@ Ein moderner, vollständiger Python-Client für die deutsche Bundestag API (DIP)
 
 - **🔄 Async Support** - Hochperformanter asynchroner API-Client für gleichzeitige Anfragen
 - **📊 Content Parsers** - Strukturierte Datenextraktion aus parlamentarischen Dokumenten
+- **🧩 Protokoll-XML Parsing** - Strukturierte XML-Plenarprotokolle (Agenda/Reden/Ereignisse) parsen, falls verfügbar
 - **⚡ Intelligentes Caching** - Integriertes Caching mit konfigurierbarer TTL und Größenlimits
 - **🔍 Erweiterte Filterung** - Leistungsstarke Such- und Filterfunktionen
 - **📦 Batch-Operationen** - Effiziente Massendatenabfrage und -verarbeitung
@@ -75,29 +76,43 @@ asyncio.run(main())
 
 ```python
 from pydipapi import DipAnfrage
-from pydipapi.parsers import DocumentParser, PersonParser
+from pydipapi.parsers import DocumentParser, PersonParser, ProtocolXmlParser
 
 api = DipAnfrage(api_key="ihr_api_key_hier")
 
 # Dokumentinhalt parsen
 documents = api.get_drucksache(anzahl=5)
 doc_parser = DocumentParser()
-parsed_docs = doc_parser.parse_batch(documents)
+parsed_docs = doc_parser.parse(documents)  # `parse()` akzeptiert auch Listen
 
 for doc in parsed_docs:
+    parsed = doc.get("parsed", {})
     print(f"Titel: {doc.get('titel')}")
-    print(f"Typ: {doc.get('dokumenttyp')}")
-    print(f"Autoren: {', '.join(doc.get('autoren', []))}")
+    print(f"Typ: {parsed.get('document_type')}")
+    author_names = [a.get("name") for a in parsed.get("authors", []) if isinstance(a, dict) and a.get("name")]
+    print(f"Autoren: {', '.join(author_names)}")
 
 # Abgeordneteninformationen parsen
 members = api.get_person(anzahl=10)
 person_parser = PersonParser()
-parsed_members = person_parser.parse_batch(members)
+parsed_members = person_parser.parse(members)
 
 for member in parsed_members:
-    print(f"Name: {member.get('name')}")
-    print(f"Partei: {member.get('partei')}")
-    print(f"Wahlkreis: {member.get('wahlkreis')}")
+    parsed = member.get("parsed", {})
+    basic = parsed.get("basic_info", {})
+    constituency = parsed.get("constituency_info", {})
+    party = parsed.get("party_info", {})
+    print(f"Name: {basic.get('name')}")
+    print(f"Partei/Fraktion: {party.get('current_party')}")
+    print(f"Wahlkreis: {constituency.get('constituency')}")
+
+# (Optional) Strukturierte Protokoll-XML parsen, wenn `fundstelle.xml_url` vorhanden ist
+protocols = api.get_plenarprotokoll(anzahl=1, text=True)
+if protocols:
+    xml_text = api.get_plenarprotokoll_xml(protocols[0])
+    if xml_text:
+        xml_parsed = ProtocolXmlParser().parse(xml_text)
+        print(xml_parsed["parsed"]["session_info"])
 ```
 
 ## 📚 Dokumentation

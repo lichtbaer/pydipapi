@@ -381,6 +381,46 @@ if protocol:
     print(f"Protokoll: {protocol['titel']}")
 ```
 
+### get_plenarprotokoll_xml()
+
+```python
+get_plenarprotokoll_xml(protocol: Dict[str, Any]) -> Optional[str]
+```
+
+Lädt die **strukturierte XML-Version** eines Plenarprotokolls, falls verfügbar.
+Viele Bundestag-Plenarprotokolle enthalten einen Link unter `fundstelle.xml_url` (gehostet auf dserver).
+
+**Beispiel:**
+
+```python
+from pydipapi import DipAnfrage, ProtocolXmlParser
+
+dip = DipAnfrage(api_key="ihr_api_key")
+protocol = dip.get_plenarprotokoll_text_by_id(id=11000001)
+
+if protocol:
+    xml_text = dip.get_plenarprotokoll_xml(protocol)
+    if xml_text:
+        parsed = ProtocolXmlParser().parse(xml_text)
+        print(parsed["parsed"]["session_info"])
+```
+
+### get_plenarprotokoll_xml_by_id()
+
+```python
+get_plenarprotokoll_xml_by_id(id: int, text: bool = True) -> Optional[str]
+```
+
+Convenience-Methode: lädt erst das Protokoll (optional via `plenarprotokoll-text`) und lädt danach dessen XML, falls vorhanden.
+
+**Beispiel:**
+
+```python
+xml_text = dip.get_plenarprotokoll_xml_by_id(id=11000001, text=True)
+```
+
+**Async-Hinweis:** `AsyncDipAnfrage` bietet dieselben Methoden als `await dip.get_plenarprotokoll_xml(...)` bzw. `await dip.get_plenarprotokoll_xml_by_id(...)`.
+
 ## Vorgangspositionen-Endpunkte
 
 ### get_vorgangsposition()
