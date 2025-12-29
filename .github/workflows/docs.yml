@@ -73,7 +73,7 @@ jobs:
         
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4
 
   docs-linkcheck:
     name: Check Documentation Links
